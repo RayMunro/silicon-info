@@ -4,6 +4,10 @@ A floating desktop widget for Apple Silicon Macs that splits system activity int
 
 Full documentation: [docs/Silicon-Info-Documentation.pdf](docs/Silicon-Info-Documentation.pdf)
 
+## Menu bar
+
+The app also adds a menu bar icon. Its menu shows live CPU, GPU, Neural Engine and memory readings, a Hide Panel or Show Panel toggle for the floating panel, and Quit Silicon Info.
+
 ## Desktop widget
 
 Run the app once, then right-click the desktop, choose **Edit Widgets** and search for **Silicon Info**.

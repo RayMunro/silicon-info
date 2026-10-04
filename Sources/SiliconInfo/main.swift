@@ -17,9 +17,10 @@
 import SwiftUI
 import AppKit
 
-final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDelegate {
     var window: NSWindow!
     let sampler = Sampler()
+    private var statusItem: NSStatusItem!
     private var top: CGFloat = 0     // y of the window's top edge; kept fixed when the content resizes
 
     func applicationDidFinishLaunching(_ n: Notification) {
@@ -46,6 +47,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         window.setFrameOrigin(NSPoint(x: x, y: top - window.frame.height))
         window.makeKeyAndOrderFront(nil)
+        setupStatusItem()
 
         // `--render-widgets <folder>` saves PNGs of the widget layouts after a short warm-up, then quits.
         if let i = CommandLine.arguments.firstIndex(of: "--render-widgets"), i + 1 < CommandLine.arguments.count {
@@ -55,6 +57,48 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 NSApp.terminate(nil)
             }
         }
+    }
+
+    // MARK: menu bar
+
+    private func setupStatusItem() {
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        if let button = statusItem.button {
+            let image = NSImage(systemSymbolName: "cpu", accessibilityDescription: "Silicon Info")
+            image?.isTemplate = true
+            button.image = image
+            button.toolTip = "Silicon Info"
+        }
+        let menu = NSMenu()
+        menu.delegate = self
+        statusItem.menu = menu
+    }
+
+    /// Rebuilt each time the menu opens so the readings are current.
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        menu.removeAllItems()
+        let s = sampler.snap
+        func w(_ v: Double) -> String { sampler.cpuPowerSeen ? String(format: "%.1f W", v) : "n/a" }
+        func info(_ text: String) {
+            let item = NSMenuItem(title: text, action: nil, keyEquivalent: "")
+            item.isEnabled = false
+            menu.addItem(item)
+        }
+        info("CPU  \(pct(avg(s.pCores + s.eCores)))  \u{00B7}  \(w(s.cpuWatts))")
+        info("GPU  \(pct(s.gpuUtil))  \u{00B7}  \(w(s.gpuWatts))")
+        info("Neural Engine  \(w(s.aneWatts))")
+        info("Memory  \(gb(sampler.mem.used)) of \(gb(sampler.mem.total))")
+        menu.addItem(.separator())
+
+        let toggle = NSMenuItem(title: window.isVisible ? "Hide Panel" : "Show Panel", action: #selector(togglePanel), keyEquivalent: "")
+        toggle.target = self
+        menu.addItem(toggle)
+        menu.addItem(.separator())
+        menu.addItem(NSMenuItem(title: "Quit Silicon Info", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+    }
+
+    @objc private func togglePanel() {
+        if window.isVisible { window.orderOut(nil) } else { window.orderFrontRegardless() }
     }
 
     private var adjusting = false
