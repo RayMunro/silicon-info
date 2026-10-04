@@ -16,11 +16,13 @@
 
 import SwiftUI
 import AppKit
+import Combine
 
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDelegate {
     var window: NSWindow!
     let sampler = Sampler()
     private var statusItem: NSStatusItem!
+    private var cpuSubscription: AnyCancellable?
     private var top: CGFloat = 0     // y of the window's top edge; kept fixed when the content resizes
 
     func applicationDidFinishLaunching(_ n: Notification) {
@@ -62,12 +64,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     // MARK: menu bar
 
     private func setupStatusItem() {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = statusItem.button {
             let image = NSImage(systemSymbolName: "cpu", accessibilityDescription: "Silicon Info")
             image?.isTemplate = true
             button.image = image
+            button.imagePosition = .imageLeading
             button.toolTip = "Silicon Info"
+        }
+        // Live CPU load next to the icon. Monospaced digits stop the item from jittering as the value changes.
+        let font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+        cpuSubscription = sampler.$snap.receive(on: DispatchQueue.main).sink { [weak self] snap in
+            let load = avg(snap.pCores + snap.eCores)
+            self?.statusItem.button?.attributedTitle = NSAttributedString(string: " \(pct(load))", attributes: [.font: font])
         }
         let menu = NSMenu()
         menu.delegate = self

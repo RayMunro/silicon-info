@@ -6,7 +6,7 @@ Full documentation: [docs/Silicon-Info-Documentation.pdf](docs/Silicon-Info-Docu
 
 ## Menu bar
 
-The app also adds a menu bar icon. Its menu shows live CPU, GPU, Neural Engine and memory readings, a Hide Panel or Show Panel toggle for the floating panel, and Quit Silicon Info.
+The app also adds a menu bar item that shows the live total CPU load next to its icon. Its menu shows live CPU, GPU, Neural Engine and memory readings, a Hide Panel or Show Panel toggle for the floating panel, and Quit Silicon Info.
 
 ## Desktop widget
 
