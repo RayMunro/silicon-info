@@ -4,6 +4,21 @@ A floating desktop widget for Apple Silicon Macs that splits system activity int
 
 Full documentation: [docs/Silicon-Info-Documentation.pdf](docs/Silicon-Info-Documentation.pdf)
 
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/overview.png" width="260" alt="Overview"><br><sub>Overview</sub></td>
+    <td align="center"><img src="docs/screenshots/cpu.png" width="260" alt="CPU detail"><br><sub>CPU detail</sub></td>
+    <td align="center"><img src="docs/screenshots/gpu.png" width="260" alt="GPU detail"><br><sub>GPU detail</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/ane.png" width="260" alt="Neural Engine detail"><br><sub>Neural Engine detail</sub></td>
+    <td align="center"><img src="docs/screenshots/mem.png" width="260" alt="Memory detail"><br><sub>Memory detail</sub></td>
+    <td align="center"><img src="docs/screenshots/power.png" width="260" alt="Power detail"><br><sub>Power detail</sub></td>
+  </tr>
+</table>
+
 ## Requirements
 
 - A Mac with Apple Silicon
@@ -18,6 +33,12 @@ open "Silicon Info.app"
 ```
 
 On launch the widget asks for your administrator password through the standard macOS dialog. This is needed to read power, frequency and per-process figures from `powermetrics`. If you decline, the widget still runs but shows `n/a` for the values that need it.
+
+To hide every list of process names (for screenshots or screen sharing), launch the binary with the privacy option:
+
+```bash
+"Silicon Info.app/Contents/MacOS/SiliconWidget" --hide-processes
+```
 
 To quit the widget:
 

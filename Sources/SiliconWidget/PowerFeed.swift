@@ -30,7 +30,9 @@ final class PowerFeed {
         // A root loop from a previous launch is still running (it outlives us by a moment): reuse it, no prompt.
         if let m = (try? FileManager.default.attributesOfItem(atPath: path))?[.modificationDate] as? Date,
            Date().timeIntervalSince(m) < 3 { return }
-        let loop = "rm -f \(path) \(path).tmp; while pgrep -x SiliconWidget > /dev/null; do "
+        // Exits once no Silicon Info process has been seen for about six seconds, so a quick relaunch reuses it.
+        let loop = "rm -f \(path) \(path).tmp; miss=0; while [ $miss -lt 6 ]; do "
+            + "if pgrep -x SiliconWidget > /dev/null; then miss=0; else miss=$((miss+1)); fi; "
             + "/usr/bin/powermetrics --samplers cpu_power,gpu_power,ane_power,tasks --show-process-gpu -i 1000 -n 1 > \(path).tmp 2>/dev/null "
             + "&& mv \(path).tmp \(path) || sleep 2; done"
         let shell = "sh -c '\(loop)' > /dev/null 2>&1 &"
@@ -47,6 +49,9 @@ final class PowerFeed {
 
     /// Latest sample, or nil if the feed isn't running (not authorised yet, or declined).
     func read() -> Sample? {
+        // A file that stopped updating means the root loop is gone; don't show its last sample as live data.
+        guard let m = (try? FileManager.default.attributesOfItem(atPath: path))?[.modificationDate] as? Date,
+              Date().timeIntervalSince(m) < 5 else { return nil }
         guard let text = try? String(contentsOfFile: path, encoding: .utf8) else { return nil }
         return Self.parse(text)
     }

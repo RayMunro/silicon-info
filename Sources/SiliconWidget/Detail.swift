@@ -31,22 +31,27 @@ struct NeedsAccess: View {
     }
 }
 
+/// `--hide-processes` removes every list of process names, for screenshots or shared screens.
+let hideProcesses = CommandLine.arguments.contains("--hide-processes")
+
 struct Block<Content: View>: View {
     let title: String
     var trailing: String = ""
     @ViewBuilder var content: Content
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(title).font(.system(size: 10, weight: .semibold)).tracking(0.6).foregroundStyle(.secondary)
-                Spacer()
-                Text(trailing).font(.system(size: 10, design: .monospaced)).foregroundStyle(.secondary)
+        if !(hideProcesses && title.contains("PROCESSES")) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(title).font(.system(size: 10, weight: .semibold)).tracking(0.6).foregroundStyle(.secondary)
+                    Spacer()
+                    Text(trailing).font(.system(size: 10, design: .monospaced)).foregroundStyle(.secondary)
+                }
+                content
             }
-            content
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 14).fill(.white.opacity(0.06)))
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 14).fill(.white.opacity(0.06)))
     }
 }
 
