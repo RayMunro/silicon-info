@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Silicon Info Documentation</title>
+<style>
+  @page { size: A4; margin: 22mm 18mm; }
+  body { font: 11pt/1.55 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #1c1c24; }
+  h1 { font-size: 30pt; margin: 0 0 4pt; letter-spacing: -0.5pt; }
+  h2 { font-size: 16pt; margin: 26pt 0 6pt; padding-bottom: 4pt; border-bottom: 2px solid #e4e4ee; page-break-after: avoid; }
+  h3 { font-size: 12pt; margin: 16pt 0 4pt; page-break-after: avoid; }
+  .cover { text-align: center; padding: 60pt 0 40pt; page-break-after: always; }
+  .cover img { width: 150pt; }
+  .cover p { color: #55556a; font-size: 13pt; }
+  .tag { display: inline-block; padding: 1pt 8pt; border-radius: 9pt; color: #fff; font-size: 9pt; font-weight: 600; }
+  .cpu { background: #4d99ff; } .eff { background: #5cd69e; } .gpu { background: #ff8c40; } .ane { background: #bf73ff; }
+  table { border-collapse: collapse; width: 100%; margin: 8pt 0; font-size: 10pt; page-break-inside: avoid; }
+  th, td { text-align: left; padding: 5pt 8pt; border-bottom: 1px solid #e4e4ee; vertical-align: top; }
+  th { background: #f3f3f9; }
+  code, pre { font-family: "SF Mono", Menlo, monospace; font-size: 9.5pt; }
+  code { background: #f1f1f7; padding: 1pt 4pt; border-radius: 3pt; }
+  pre { background: #f1f1f7; padding: 9pt 11pt; border-radius: 6pt; page-break-inside: avoid; }
+  .note { background: #fff6e8; border-left: 4px solid #ff8c40; padding: 7pt 11pt; margin: 10pt 0; page-break-inside: avoid; }
+  footer { margin-top: 36pt; color: #77778c; font-size: 9pt; text-align: center; }
+</style></head><body>
+
+<div class="cover">
+  <img src="icon.png" alt="Silicon Info icon">
+  <h1>Silicon Info</h1>
+  <p>A floating CPU, GPU and Neural Engine widget for Apple Silicon Macs</p>
+  <p>Documentation, version 1.0</p>
+  <p style="margin-top:80pt;font-size:10pt">Copyright &copy; 2026 Ray Munro. All rights reserved.</p>
+</div>
+
+<h2>1. Overview</h2>
+<p>Silicon Info is a small always-visible panel for the desktop. It breaks Mac activity into the pieces that make up an Apple Silicon chip instead of showing one combined number. The panel has four cards:</p>
+<ul>
+  <li><span class="tag cpu">CPU</span> performance cores and efficiency cores, shown separately.</li>
+  <li><span class="tag gpu">GPU</span> device utilization with render and tiler load.</li>
+  <li><span class="tag ane">Neural Engine</span> power draw and activity history.</li>
+  <li><b>Power</b> how total power divides between the three blocks.</li>
+</ul>
+<p>Each card is a summary. Click a card to expand it into a detailed view, and use the Back control to return.</p>
+
+<h2>2. Requirements</h2>
+<table>
+  <tr><th>Item</th><th>Requirement</th></tr>
+  <tr><td>Hardware</td><td>Mac with Apple Silicon (developed on an M4 Max)</td></tr>
+  <tr><td>Operating system</td><td>macOS 14 or later</td></tr>
+  <tr><td>Build tools</td><td>Xcode command line tools with Swift 5.9 or later</td></tr>
+  <tr><td>Privileges</td><td>An administrator password, entered once per launch, for power and frequency data</td></tr>
+</table>
+
+<h2>3. Installation and use</h2>
+<h3>Build</h3>
+<pre>./build.sh</pre>
+<p>This compiles a release build, draws the app icon, assembles <code>Silicon Info.app</code> and signs it ad hoc for local use.</p>
+<h3>Run</h3>
+<pre>open "Silicon Info.app"</pre>
+<p>The widget appears at the top right of the main display. It has no Dock icon or menu bar item. Drag it anywhere by its background. Its position is remembered, and the window is kept fully on screen when a card expands.</p>
+<h3>Quit</h3>
+<pre>pkill SiliconWidget</pre>
+
+<h2>4. The views</h2>
+<h3>Overview</h3>
+<table>
+  <tr><th>Card</th><th>Shows</th></tr>
+  <tr><td>CPU</td><td>One bar per core, grouped into performance cores (blue) and efficiency cores (green), each group's average load, package power and a load history line.</td></tr>
+  <tr><td>GPU</td><td>A ring for device utilization, render and tiler bars, power and a history line.</td></tr>
+  <tr><td>Neural Engine</td><td>A ring for power draw and a history line.</td></tr>
+  <tr><td>Power</td><td>A single bar divided between CPU, GPU and Neural Engine, with the total in watts.</td></tr>
+</table>
+
+<h3>CPU detail</h3>
+<table>
+  <tr><th>Section</th><th>Contents</th></tr>
+  <tr><td>Clusters</td><td>For the efficiency cluster and each performance cluster: current frequency, active share, and a histogram of time spent at each clock step.</td></tr>
+  <tr><td>Cores</td><td>Every core with a stacked bar of user time (blue or green) and system time (red), its current clock speed and total load.</td></tr>
+  <tr><td>Top processes</td><td>The busiest processes, as a percentage of one core.</td></tr>
+  <tr><td>Power</td><td>Two minutes of CPU power with average and peak.</td></tr>
+</table>
+
+<h3>GPU detail</h3>
+<table>
+  <tr><th>Section</th><th>Contents</th></tr>
+  <tr><td>Overview</td><td>Utilization ring, current frequency, maximum clock, active and idle share, power.</td></tr>
+  <tr><td>Frequency residency</td><td>Time spent at each GPU clock step.</td></tr>
+  <tr><td>Engines</td><td>Device, render and tiler utilization.</td></tr>
+  <tr><td>Memory</td><td>GPU memory in use and allocated. This memory is shared with the system.</td></tr>
+  <tr><td>Top GPU processes</td><td>Processes using GPU time, as a share of the GPU.</td></tr>
+</table>
+
+<h3>Neural Engine detail</h3>
+<p>Shows current power, average and peak over two minutes, energy used since launch, an active or idle state and a power history chart. Load is power as a share of an assumed 8 W ceiling, so treat the ring as relative.</p>
+
+<h3>Power detail</h3>
+<p>Shows the live split between CPU, GPU and Neural Engine, a stacked two-minute history where the top edge is the total, and average power, peak power and energy in milliwatt-hours for each block since launch.</p>
+
+<h2>5. Data sources</h2>
+<table>
+  <tr><th>Data</th><th>Source</th><th>Needs admin</th></tr>
+  <tr><td>Per-core load, user and system split</td><td>Mach <code>host_processor_info</code></td><td>No</td></tr>
+  <tr><td>GPU utilization, render, tiler, memory</td><td>IOKit accelerator statistics</td><td>No</td></tr>
+  <tr><td>CPU, GPU and Neural Engine power</td><td><code>powermetrics</code></td><td>Yes</td></tr>
+  <tr><td>Core and cluster frequency, residency</td><td><code>powermetrics</code></td><td>Yes</td></tr>
+  <tr><td>GPU frequency and residency</td><td><code>powermetrics</code></td><td>Yes</td></tr>
+  <tr><td>Per-process CPU and GPU time</td><td><code>powermetrics</code> tasks sampler</td><td>Yes</td></tr>
+</table>
+<p>Core order follows Apple Silicon convention: efficiency cores are numbered first, then performance cores.</p>
+
+<h2>6. Privileges and safety</h2>
+<p>Reading power and frequency needs root access. On launch the widget shows the standard macOS administrator dialog. After approval, a small shell loop runs as root. It does only one thing: it runs <code>powermetrics</code> once per second and writes the text output to <code>/private/tmp/siliconwidget-powermetrics.txt</code>, which the widget reads.</p>
+<ul>
+  <li>The loop exits on its own about a second after the last Silicon Info process quits.</li>
+  <li>Relaunching quickly reuses the running loop and does not ask again.</li>
+  <li>Nothing is sent over the network. The output file contains only power, frequency and process names with CPU and GPU time.</li>
+  <li>If you cancel the dialog, the widget keeps running and shows <code>n/a</code> for the values that need it.</li>
+</ul>
+<div class="note">The output file is readable by other local users, so process names on the machine are visible to them while the widget runs.</div>
+
+<h2>7. Limitations</h2>
+<p>macOS does not expose the following on this hardware, so they are not shown:</p>
+<ul>
+  <li><b>Neural Engine utilization, frequency or per-process use.</b> Only power draw is available.</li>
+  <li><b>Per-cluster CPU power.</b> Only the CPU total is reported.</li>
+  <li><b>DRAM bandwidth and media engine power.</b> These are not readable on this chip.</li>
+</ul>
+<p>Per-process GPU time is often zero because few processes keep the GPU busy at any moment.</p>
+
+<h2>8. Troubleshooting</h2>
+<table>
+  <tr><th>Symptom</th><th>Cause and fix</th></tr>
+  <tr><td>Power shows <code>n/a</code></td><td>The administrator dialog was cancelled. Quit and relaunch, then approve it.</td></tr>
+  <tr><td>Power graphs are empty after launch</td><td>History fills at one sample per second. Wait a minute.</td></tr>
+  <tr><td>Neural Engine reads 0 W</td><td>The engine is idle. Run something that uses it, such as Core ML work, to see it move.</td></tr>
+  <tr><td>Widget is off screen</td><td>Delete the saved position with <code>defaults delete com.raymunro.siliconinfo</code> and relaunch.</td></tr>
+  <tr><td>Build fails</td><td>Install the command line tools with <code>xcode-select --install</code>.</td></tr>
+</table>
+
+<h2>9. Project layout</h2>
+<table>
+  <tr><th>Path</th><th>Purpose</th></tr>
+  <tr><td><code>Sources/SiliconWidget/main.swift</code></td><td>Creates the borderless floating window and keeps it anchored and on screen.</td></tr>
+  <tr><td><code>Sources/SiliconWidget/Sampler.swift</code></td><td>Samples core load and GPU statistics each second and holds the history.</td></tr>
+  <tr><td><code>Sources/SiliconWidget/PowerFeed.swift</code></td><td>Starts the privileged loop and parses the <code>powermetrics</code> output.</td></tr>
+  <tr><td><code>Sources/SiliconWidget/Views.swift</code></td><td>The overview cards and expand and collapse behavior.</td></tr>
+  <tr><td><code>Sources/SiliconWidget/Detail.swift</code></td><td>The CPU, GPU, Neural Engine and Power detail views.</td></tr>
+  <tr><td><code>scripts/make_icon.swift</code></td><td>Draws the app icon.</td></tr>
+  <tr><td><code>build.sh</code></td><td>Builds and signs the app bundle.</td></tr>
+</table>
+
+<footer>Silicon Info &middot; Copyright &copy; 2026 Ray Munro. All rights reserved.</footer>
+</body></html>
