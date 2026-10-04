@@ -104,6 +104,12 @@ final class Sampler: ObservableObject {
     /// Latest powermetrics sample (frequencies, clusters, processes); nil until authorised.
     @Published var pm: PowerFeed.Sample?
     private var lastSampleID = ""
+    /// Unified memory (DRAM) state, a two-minute usage history and the biggest processes.
+    @Published var mem = MemSnap()
+    @Published var memHistory: [Double] = []
+    @Published var topMem: [(String, Double)] = []
+    private var memReader = MemoryReader()
+    private var memTicks = 0
     /// False until a nonzero reading arrives; some macOS versions report zeros for CPU channels.
     @Published var cpuPowerSeen = false
     @Published var gpuPowerSeen = false
@@ -153,6 +159,15 @@ final class Sampler: ObservableObject {
         if s.cpuWatts > 0 { cpuPowerSeen = true }
         if s.gpuWatts > 0 { gpuPowerSeen = true }
         snap = s
+        mem = memReader.read()
+        push(&memHistory, mem.used / max(mem.total, 1), 120)
+        if memTicks % 5 == 0 {   // ps is comparatively heavy, so refresh the process list every 5 s
+            DispatchQueue.global(qos: .utility).async { [weak self] in
+                let top = MemoryReader.topProcesses()
+                DispatchQueue.main.async { self?.topMem = top }
+            }
+        }
+        memTicks += 1
         let cpu = (s.eCores + s.pCores).reduce(0, +) / Double(max(s.eCores.count + s.pCores.count, 1))
         push(&cpuHistory, cpu); push(&gpuHistory, s.gpuUtil); push(&aneHistory, min(s.aneWatts / aneMaxWatts, 1))
     }

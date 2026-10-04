@@ -10,7 +10,7 @@
   .cover img { width: 150pt; }
   .cover p { color: #55556a; font-size: 13pt; }
   .tag { display: inline-block; padding: 1pt 8pt; border-radius: 9pt; color: #fff; font-size: 9pt; font-weight: 600; }
-  .cpu { background: #4d99ff; } .eff { background: #5cd69e; } .gpu { background: #ff8c40; } .ane { background: #bf73ff; }
+  .cpu { background: #4d99ff; } .eff { background: #5cd69e; } .gpu { background: #ff8c40; } .ane { background: #bf73ff; } .mem { background: #f2669e; }
   table { border-collapse: collapse; width: 100%; margin: 8pt 0; font-size: 10pt; page-break-inside: avoid; }
   th, td { text-align: left; padding: 5pt 8pt; border-bottom: 1px solid #e4e4ee; vertical-align: top; }
   th { background: #f3f3f9; }
@@ -30,11 +30,12 @@
 </div>
 
 <h2>1. Overview</h2>
-<p>Silicon Info is a small always-visible panel for the desktop. It breaks Mac activity into the pieces that make up an Apple Silicon chip instead of showing one combined number. The panel has four cards:</p>
+<p>Silicon Info is a small always-visible panel for the desktop. It breaks Mac activity into the pieces that make up an Apple Silicon chip instead of showing one combined number. The panel has five cards:</p>
 <ul>
   <li><span class="tag cpu">CPU</span> performance cores and efficiency cores, shown separately.</li>
   <li><span class="tag gpu">GPU</span> device utilization with render and tiler load.</li>
   <li><span class="tag ane">Neural Engine</span> power draw and activity history.</li>
+  <li><span class="tag mem">Memory</span> unified memory (DRAM) usage, pressure and swap.</li>
   <li><b>Power</b> how total power divides between the three blocks.</li>
 </ul>
 <p>Each card is a summary. Click a card to expand it into a detailed view, and use the Back control to return.</p>
@@ -65,6 +66,7 @@
   <tr><td>CPU</td><td>One bar per core, grouped into performance cores (blue) and efficiency cores (green), each group's average load, package power and a load history line.</td></tr>
   <tr><td>GPU</td><td>A ring for device utilization, render and tiler bars, power and a history line.</td></tr>
   <tr><td>Neural Engine</td><td>A ring for power draw and a history line.</td></tr>
+  <tr><td>Memory</td><td>Used and total memory, a bar split into app, wired and compressed memory, and the current pressure level.</td></tr>
   <tr><td>Power</td><td>A single bar divided between CPU, GPU and Neural Engine, with the total in watts.</td></tr>
 </table>
 
@@ -90,6 +92,16 @@
 <h3>Neural Engine detail</h3>
 <p>Shows current power, average and peak over two minutes, energy used since launch, an active or idle state and a power history chart. Load is power as a share of an assumed 8 W ceiling, so treat the ring as relative.</p>
 
+<h3>Memory detail</h3>
+<p>Apple Silicon uses one pool of unified memory shared by the CPU, GPU and Neural Engine, so this is the DRAM view. It needs no administrator rights.</p>
+<table>
+  <tr><th>Section</th><th>Contents</th></tr>
+  <tr><td>Unified memory</td><td>Used, available and total memory, with a bar and a legend for app memory, wired, compressed, cached files and free. Used memory follows the Activity Monitor definition: app plus wired plus compressed.</td></tr>
+  <tr><td>Pressure and swap</td><td>The system pressure level (normal, warning or critical), swap in use and swap size, and the rate of data paged in and out.</td></tr>
+  <tr><td>Top processes</td><td>The processes holding the most resident memory, refreshed every five seconds.</td></tr>
+  <tr><td>History</td><td>Two minutes of memory use.</td></tr>
+</table>
+
 <h3>Power detail</h3>
 <p>Shows the live split between CPU, GPU and Neural Engine, a stacked two-minute history where the top edge is the total, and average power, peak power and energy in milliwatt-hours for each block since launch.</p>
 
@@ -98,6 +110,8 @@
   <tr><th>Data</th><th>Source</th><th>Needs admin</th></tr>
   <tr><td>Per-core load, user and system split</td><td>Mach <code>host_processor_info</code></td><td>No</td></tr>
   <tr><td>GPU utilization, render, tiler, memory</td><td>IOKit accelerator statistics</td><td>No</td></tr>
+  <tr><td>Memory breakdown, pressure, swap, paging rates</td><td>Mach <code>host_statistics64</code> and <code>sysctl</code></td><td>No</td></tr>
+  <tr><td>Top processes by memory</td><td><code>ps</code></td><td>No</td></tr>
   <tr><td>CPU, GPU and Neural Engine power</td><td><code>powermetrics</code></td><td>Yes</td></tr>
   <tr><td>Core and cluster frequency, residency</td><td><code>powermetrics</code></td><td>Yes</td></tr>
   <tr><td>GPU frequency and residency</td><td><code>powermetrics</code></td><td>Yes</td></tr>
@@ -120,7 +134,8 @@
 <ul>
   <li><b>Neural Engine utilization, frequency or per-process use.</b> Only power draw is available.</li>
   <li><b>Per-cluster CPU power.</b> Only the CPU total is reported.</li>
-  <li><b>DRAM bandwidth and media engine power.</b> These are not readable on this chip.</li>
+  <li><b>DRAM bandwidth and DRAM power.</b> macOS refuses the counter subscription even with administrator rights, so only memory usage is shown.</li>
+  <li><b>Media engine power.</b> It reads zero on this chip.</li>
 </ul>
 <p>Per-process GPU time is often zero because few processes keep the GPU busy at any moment.</p>
 
@@ -139,9 +154,10 @@
   <tr><th>Path</th><th>Purpose</th></tr>
   <tr><td><code>Sources/SiliconWidget/main.swift</code></td><td>Creates the borderless floating window and keeps it anchored and on screen.</td></tr>
   <tr><td><code>Sources/SiliconWidget/Sampler.swift</code></td><td>Samples core load and GPU statistics each second and holds the history.</td></tr>
+  <tr><td><code>Sources/SiliconWidget/Memory.swift</code></td><td>Reads unified memory usage, pressure, swap and the top processes by memory.</td></tr>
   <tr><td><code>Sources/SiliconWidget/PowerFeed.swift</code></td><td>Starts the privileged loop and parses the <code>powermetrics</code> output.</td></tr>
   <tr><td><code>Sources/SiliconWidget/Views.swift</code></td><td>The overview cards and expand and collapse behavior.</td></tr>
-  <tr><td><code>Sources/SiliconWidget/Detail.swift</code></td><td>The CPU, GPU, Neural Engine and Power detail views.</td></tr>
+  <tr><td><code>Sources/SiliconWidget/Detail.swift</code></td><td>The CPU, GPU, Neural Engine, Memory and Power detail views.</td></tr>
   <tr><td><code>scripts/make_icon.swift</code></td><td>Draws the app icon.</td></tr>
   <tr><td><code>build.sh</code></td><td>Builds and signs the app bundle.</td></tr>
 </table>

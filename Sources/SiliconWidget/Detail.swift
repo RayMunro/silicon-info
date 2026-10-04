@@ -351,3 +351,75 @@ struct PowerDetail: View {
         }
     }
 }
+
+// MARK: - Memory (DRAM)
+
+struct MemoryDetail: View {
+    @ObservedObject var sampler: Sampler
+    var body: some View {
+        let m = sampler.mem, t = max(m.total, 1)
+        let pressureColor: Color = m.pressure >= 4 ? .red : m.pressure >= 2 ? .yellow : .green
+        let parts: [(String, Double, Color)] = [
+            ("App memory", m.app, Palette.mem),
+            ("Wired", m.wired, Palette.mem.opacity(0.6)),
+            ("Compressed", m.compressed, Palette.mem.opacity(0.35)),
+            ("Cached files", m.cached, .gray.opacity(0.55)),
+            ("Free", m.free, .gray.opacity(0.2)),
+        ]
+        VStack(spacing: 10) {
+            Block(title: "UNIFIED MEMORY", trailing: "shared by CPU, GPU and Neural Engine") {
+                HStack {
+                    Stat(label: "USED", value: gb(m.used), color: Palette.mem)
+                    Stat(label: "AVAILABLE", value: gb(m.total - m.used))
+                    Stat(label: "TOTAL", value: gb(m.total))
+                }
+                StackedBar(parts: parts.map { ($0.1 / t, $0.2) }, height: 10)
+                ForEach(parts, id: \.0) { r in
+                    HStack {
+                        Circle().fill(r.2).frame(width: 7, height: 7)
+                        Text(r.0).font(.system(size: 11))
+                        Spacer()
+                        Text("\(gb(r.1))  \u{00B7}  \(pct(r.1 / t))").font(.system(size: 10.5, design: .monospaced))
+                    }
+                }
+            }
+            Block(title: "PRESSURE AND SWAP") {
+                HStack {
+                    Stat(label: "PRESSURE", value: m.pressureName, color: pressureColor)
+                    Stat(label: "SWAP USED", value: gb(m.swapUsed))
+                    Stat(label: "SWAP SIZE", value: gb(m.swapTotal))
+                }
+                HStack {
+                    Stat(label: "PAGED IN", value: rate(m.pageInRate))
+                    Stat(label: "PAGED OUT", value: rate(m.pageOutRate))
+                    Spacer().frame(maxWidth: .infinity)
+                }
+            }
+            Block(title: "TOP PROCESSES", trailing: "resident memory") {
+                let top = max(sampler.topMem.first?.1 ?? 1, 1)
+                if sampler.topMem.isEmpty {
+                    Text("Reading processes...").font(.system(size: 10)).foregroundStyle(.secondary)
+                } else {
+                    VStack(spacing: 5) {
+                        ForEach(Array(sampler.topMem.enumerated()), id: \.offset) { _, r in
+                            HStack(spacing: 8) {
+                                Text(r.0).font(.system(size: 10.5)).lineLimit(1).frame(width: 130, alignment: .leading)
+                                GeometryReader { g in
+                                    Capsule().fill(Palette.mem).frame(width: max(2, g.size.width * CGFloat(r.1 / top)))
+                                }.frame(height: 5)
+                                Text(gb(r.1)).font(.system(size: 10, design: .monospaced)).frame(width: 64, alignment: .trailing)
+                            }
+                        }
+                    }
+                }
+            }
+            Block(title: "LAST 2 MIN", trailing: "memory used") {
+                Sparkline(values: sampler.memHistory, color: Palette.mem).frame(height: 44)
+                Text("DRAM bandwidth and DRAM power are not readable on this chip, even with admin rights.")
+                    .font(.system(size: 9)).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func rate(_ bytesPerSec: Double) -> String { String(format: "%.1f MB/s", bytesPerSec / 1_048_576) }
+}

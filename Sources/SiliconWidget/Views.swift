@@ -5,6 +5,7 @@ enum Palette {
     static let cpuP = Color(red: 0.30, green: 0.60, blue: 1.00)   // performance cores
     static let gpu  = Color(red: 1.00, green: 0.55, blue: 0.25)
     static let ane  = Color(red: 0.75, green: 0.45, blue: 1.00)
+    static let mem  = Color(red: 0.95, green: 0.40, blue: 0.62)   // unified memory (DRAM)
 }
 
 struct Sparkline: View {
@@ -92,14 +93,14 @@ struct Card<Content: View>: View {
 func pct(_ v: Double) -> String { "\(Int((v * 100).rounded()))%" }
 func avg(_ a: [Double]) -> Double { a.isEmpty ? 0 : a.reduce(0, +) / Double(a.count) }
 
-enum Panel: String { case cpu = "CPU", gpu = "GPU", ane = "NEURAL ENGINE", power = "POWER" }
+enum Panel: String { case cpu = "CPU", gpu = "GPU", ane = "NEURAL ENGINE", power = "POWER", mem = "MEMORY" }
 
 struct WidgetView: View {
     @ObservedObject var sampler: Sampler
     @State private var open: Panel? = {
         // `--open cpu|gpu|ane|power` starts with a detail view showing (handy for screenshots)
         guard let i = CommandLine.arguments.firstIndex(of: "--open"), i + 1 < CommandLine.arguments.count else { return nil }
-        switch CommandLine.arguments[i + 1] { case "cpu": return .cpu; case "gpu": return .gpu; case "ane": return .ane; case "power": return .power; default: return nil }
+        switch CommandLine.arguments[i + 1] { case "cpu": return .cpu; case "gpu": return .gpu; case "ane": return .ane; case "power": return .power; case "mem": return .mem; default: return nil }
     }()
 
     var body: some View {
@@ -115,12 +116,12 @@ struct WidgetView: View {
     }
 
     private func tint(_ p: Panel) -> Color {
-        switch p { case .cpu: Palette.cpuP; case .gpu: Palette.gpu; case .ane: Palette.ane; case .power: .white }
+        switch p { case .cpu: Palette.cpuP; case .gpu: Palette.gpu; case .ane: Palette.ane; case .power: .white; case .mem: Palette.mem }
     }
 
     private func detail(_ p: Panel) -> some View {
         let s = sampler.snap
-        let w: Double = { switch p { case .cpu: s.cpuWatts; case .gpu: s.gpuWatts; case .ane: s.aneWatts; case .power: s.cpuWatts + s.gpuWatts + s.aneWatts } }()
+        let w: Double = { switch p { case .cpu: s.cpuWatts; case .gpu: s.gpuWatts; case .ane: s.aneWatts; case .power: s.cpuWatts + s.gpuWatts + s.aneWatts; case .mem: 0 } }()
         return VStack(spacing: 10) {
             HStack {
                 Button { withAnimation(.easeOut(duration: 0.2)) { open = nil } } label: {
@@ -131,7 +132,8 @@ struct WidgetView: View {
                 Circle().fill(tint(p)).frame(width: 7, height: 7)
                 Text(p.rawValue).font(.system(size: 11, weight: .semibold)).tracking(0.6)
                 Spacer()
-                Text(String(format: "%.1f W", w)).font(.system(size: 11, weight: .medium, design: .monospaced)).foregroundStyle(.secondary)
+                Text(p == .mem ? "\(gb(sampler.mem.used)) / \(gb(sampler.mem.total))" : String(format: "%.1f W", w))
+                    .font(.system(size: 11, weight: .medium, design: .monospaced)).foregroundStyle(.secondary)
             }.padding(.horizontal, 4)
             FitScroll {
                 switch p {
@@ -139,6 +141,7 @@ struct WidgetView: View {
                 case .gpu: GPUDetail(sampler: sampler)
                 case .ane: ANEDetail(sampler: sampler)
                 case .power: PowerDetail(sampler: sampler)
+                case .mem: MemoryDetail(sampler: sampler)
                 }
             }
         }
@@ -180,6 +183,12 @@ struct WidgetView: View {
                 }
                 .contentShape(Rectangle()).onTapGesture { withAnimation(.easeOut(duration: 0.2)) { open = .ane } }
             }
+            Card(title: "MEMORY", tint: Palette.mem, power: "\(gb(sampler.mem.used)) / \(gb(sampler.mem.total))") {
+                let m = sampler.mem, t = max(m.total, 1)
+                StackedBar(parts: [(m.app / t, Palette.mem), (m.wired / t, Palette.mem.opacity(0.6)), (m.compressed / t, Palette.mem.opacity(0.35))], height: 8)
+                Text("Pressure: \(m.pressureName)").font(.system(size: 9)).foregroundStyle(.secondary)
+            }
+            .contentShape(Rectangle()).onTapGesture { withAnimation(.easeOut(duration: 0.2)) { open = .mem } }
             Card(title: "POWER", tint: .white, power: String(format: "%.1f W", s.cpuWatts + s.gpuWatts + s.aneWatts)) {
                 StackedBar(parts: [(s.cpuWatts / total, Palette.cpuP), (s.gpuWatts / total, Palette.gpu), (s.aneWatts / total, Palette.ane)], height: 8)
             }
