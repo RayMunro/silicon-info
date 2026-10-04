@@ -18,6 +18,8 @@ import SwiftUI
 import AppKit
 import Combine
 
+extension Notification.Name { static let hidePanel = Notification.Name("SiliconInfoHidePanel") }
+
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDelegate {
     var window: NSWindow!
     let sampler = Sampler()
@@ -48,7 +50,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
             if vis.insetBy(dx: -50, dy: -50).contains(NSPoint(x: sx + 40, y: st - 40)) { x = sx; top = st }
         }
         window.setFrameOrigin(NSPoint(x: x, y: top - window.frame.height))
-        window.makeKeyAndOrderFront(nil)
+        // The panel stays hidden across launches once hidden; the menu bar item or reopening the app brings it back.
+        if !UserDefaults.standard.bool(forKey: "panelHidden") { window.makeKeyAndOrderFront(nil) }
+        NotificationCenter.default.addObserver(forName: .hidePanel, object: nil, queue: .main) { [weak self] _ in self?.setPanelVisible(false) }
         setupStatusItem()
 
         // `--render-widgets <folder>` saves PNGs of the widget layouts after a short warm-up, then quits.
@@ -106,8 +110,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         menu.addItem(NSMenuItem(title: "Quit Silicon Info", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
     }
 
-    @objc private func togglePanel() {
-        if window.isVisible { window.orderOut(nil) } else { window.orderFrontRegardless() }
+    @objc private func togglePanel() { setPanelVisible(!window.isVisible) }
+
+    private func setPanelVisible(_ visible: Bool) {
+        UserDefaults.standard.set(!visible, forKey: "panelHidden")
+        if visible { window.orderFrontRegardless() } else { window.orderOut(nil) }
+    }
+
+    /// Opening the app again (Dock, Finder, Spotlight) shows the panel if it was hidden.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if !window.isVisible { setPanelVisible(true) }
+        return true
     }
 
     private var adjusting = false

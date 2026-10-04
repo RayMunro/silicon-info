@@ -8,6 +8,8 @@ Full documentation: [docs/Silicon-Info-Documentation.pdf](docs/Silicon-Info-Docu
 
 The app also adds a menu bar item that shows the live total CPU load next to its icon. Its menu shows live CPU, GPU, Neural Engine and memory readings, a Hide Panel or Show Panel toggle for the floating panel, and Quit Silicon Info.
 
+To get rid of the floating panel, right-click it and choose Hide Panel (or use the menu bar item). It stays hidden across launches, and the desktop widget and menu bar item keep working. Opening the app again from Finder or Spotlight shows the panel.
+
 ## Desktop widget
 
 Run the app once, then right-click the desktop, choose **Edit Widgets** and search for **Silicon Info**.

@@ -58,6 +58,10 @@ struct WidgetView: View {
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(.white.opacity(0.12)))
         .preferredColorScheme(.dark)
+        .contextMenu {
+            Button("Hide Panel") { NotificationCenter.default.post(name: .hidePanel, object: nil) }
+            Button("Quit Silicon Info") { NSApp.terminate(nil) }
+        }
     }
 
     private func tint(_ p: Panel) -> Color {
