@@ -1,0 +1,65 @@
+name: SiliconInfo
+options:
+  bundleIdPrefix: com.raymondmunro
+  deploymentTarget:
+    macOS: "14.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: 875N49PYZ9
+    ENABLE_HARDENED_RUNTIME: YES
+    MARKETING_VERSION: "1.1"
+    CURRENT_PROJECT_VERSION: "2"
+targets:
+  SiliconInfo:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/SiliconInfo
+      - Sources/Shared
+    dependencies:
+      - target: SiliconInfoWidget
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.raymondmunro.siliconinfo
+        PRODUCT_NAME: SiliconInfo
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Silicon Info
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
+        INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright (C) 2026 Ray Munro. Licensed under the GNU General Public License v3.0 or later."
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    # Not sandboxed: it runs powermetrics through an administrator prompt and reads process statistics.
+    entitlements:
+      path: Sources/SiliconInfo/SiliconInfo.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - 875N49PYZ9.com.raymondmunro.siliconinfo
+  SiliconInfoWidget:
+    type: app-extension
+    platform: macOS
+    sources:
+      - Sources/SiliconInfoWidget
+      - Sources/Shared
+    info:
+      path: Sources/SiliconInfoWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Silicon Info
+        CFBundleName: SiliconInfoWidget
+        NSHumanReadableCopyright: "Copyright (C) 2026 Ray Munro. Licensed under the GNU General Public License v3.0 or later."
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.raymondmunro.siliconinfo.widget
+        PRODUCT_NAME: SiliconInfoWidget
+        SKIP_INSTALL: YES
+    # Widget extensions must be sandboxed. It only reads the snapshot shared by the app.
+    entitlements:
+      path: Sources/SiliconInfoWidget/SiliconInfoWidget.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - 875N49PYZ9.com.raymondmunro.siliconinfo

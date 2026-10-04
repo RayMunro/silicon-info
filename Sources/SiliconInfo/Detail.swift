@@ -1,3 +1,19 @@
+// Silicon Info
+// Copyright (C) 2026 Ray Munro
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import SwiftUI
 
 // MARK: - helpers
@@ -19,9 +35,7 @@ struct FitScroll<C: View>: View {
     }
 }
 
-func norm(_ a: [Double]) -> [Double] { let m = max(a.max() ?? 1, 0.0001); return a.map { $0 / m } }
 func mhz(_ v: Double) -> String { v >= 1000 ? String(format: "%.2f GHz", v / 1000) : "\(Int(v)) MHz" }
-func gb(_ bytes: Double) -> String { String(format: "%.2f GB", bytes / 1_073_741_824) }
 func watts(_ w: Double) -> String { String(format: "%.2f W", w) }
 
 struct NeedsAccess: View {
@@ -88,23 +102,6 @@ struct FreqHistogram: View {
                 Text(sorted.last.map { mhz(Double($0.mhz)) } ?? "").font(.system(size: 8)).foregroundStyle(.secondary)
             }
         }
-    }
-}
-
-struct StackedBar: View {
-    let parts: [(Double, Color)]   // fractions of the full width
-    var height: CGFloat = 8
-    var body: some View {
-        GeometryReader { g in
-            HStack(spacing: 0) {
-                ForEach(Array(parts.enumerated()), id: \.offset) { _, p in
-                    Rectangle().fill(p.1).frame(width: g.size.width * CGFloat(min(max(p.0, 0), 1)))
-                }
-                Spacer(minLength: 0)
-            }
-            .background(Color.white.opacity(0.08))
-            .clipShape(Capsule())
-        }.frame(height: height)
     }
 }
 

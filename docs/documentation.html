@@ -24,9 +24,10 @@
 <div class="cover">
   <img src="icon.png" alt="Silicon Info icon">
   <h1>Silicon Info</h1>
-  <p>A floating CPU, GPU and Neural Engine widget for Apple Silicon Macs</p>
-  <p>Documentation, version 1.0</p>
-  <p style="margin-top:80pt;font-size:10pt">Copyright &copy; 2026 Ray Munro. All rights reserved.</p>
+  <p>A CPU, GPU and Neural Engine widget for Apple Silicon Macs</p>
+  <p>Documentation, version 1.1</p>
+  <p style="margin-top:80pt;font-size:10pt">Copyright &copy; 2026 Ray Munro</p>
+  <p style="font-size:10pt">Free software under the GNU General Public License, version 3 or later.</p>
 </div>
 
 <h2>1. Overview</h2>
@@ -38,29 +39,31 @@
   <li><span class="tag mem">Memory</span> unified memory (DRAM) usage, pressure and swap.</li>
   <li><b>Power</b> how total power divides between the three blocks.</li>
 </ul>
-<p>Each card is a summary. Click a card to expand it into a detailed view, and use the Back control to return.</p>
+<p>Each card is a summary. Click a card to expand it into a detailed view, and use the Back control to return. The same data is also available as a real macOS desktop widget in three sizes.</p>
 
 <h2>2. Requirements</h2>
 <table>
   <tr><th>Item</th><th>Requirement</th></tr>
   <tr><td>Hardware</td><td>Mac with Apple Silicon (developed on an M4 Max)</td></tr>
   <tr><td>Operating system</td><td>macOS 14 or later</td></tr>
-  <tr><td>Build tools</td><td>Xcode command line tools with Swift 5.9 or later</td></tr>
+  <tr><td>Build tools</td><td>Xcode and XcodeGen (<code>brew install xcodegen</code>)</td></tr>
+  <tr><td>Code signing</td><td>An Apple Developer team. Widgets and App Groups do not work with ad hoc signing.</td></tr>
   <tr><td>Privileges</td><td>An administrator password, entered once per launch, for power and frequency data</td></tr>
 </table>
 
 <h2>3. Installation and use</h2>
 <h3>Build</h3>
+<p>Set your own team in <code>project.yml</code> (<code>DEVELOPMENT_TEAM</code>), and change the bundle identifiers and the App Group (<code>875N49PYZ9.com.raymondmunro.siliconinfo</code>, in <code>project.yml</code> and <code>Sources/Shared/WidgetData.swift</code>) to match your team. Then:</p>
 <pre>./build.sh</pre>
-<p>This compiles a release build, draws the app icon, assembles <code>Silicon Info.app</code> and signs it ad hoc for local use.</p>
+<p>This generates the Xcode project from <code>project.yml</code>, then builds and signs <code>SiliconInfo.app</code> together with its widget extension.</p>
 <h3>Run</h3>
-<pre>open "Silicon Info.app"</pre>
+<pre>open build/Build/Products/Release/SiliconInfo.app</pre>
 <p>The widget appears at the top right of the main display. It has no Dock icon or menu bar item. Drag it anywhere by its background. Its position is remembered, and the window is kept fully on screen when a card expands.</p>
 <h3>Hide process names</h3>
 <p>The CPU, GPU and Memory views list process names. To hide those lists, for example before sharing your screen, start the widget with the privacy option:</p>
-<pre>"Silicon Info.app/Contents/MacOS/SiliconWidget" --hide-processes</pre>
+<pre>build/Build/Products/Release/SiliconInfo.app/Contents/MacOS/SiliconInfo --hide-processes</pre>
 <h3>Quit</h3>
-<pre>pkill SiliconWidget</pre>
+<pre>pkill SiliconInfo</pre>
 
 <h2>4. The views</h2>
 <h3>Overview</h3>
@@ -108,7 +111,19 @@
 <h3>Power detail</h3>
 <p>Shows the live split between CPU, GPU and Neural Engine, a stacked two-minute history where the top edge is the total, and average power, peak power and energy in milliwatt-hours for each block since launch.</p>
 
-<h2>5. Data sources</h2>
+<h2>5. Desktop widget</h2>
+<p>Silicon Info includes a WidgetKit widget. Run the app once, then right-click the desktop, choose Edit Widgets and search for Silicon Info.</p>
+<table>
+  <tr><th>Size</th><th>Shows</th></tr>
+  <tr><td>Small</td><td>One component of your choice: CPU, GPU, Neural Engine, Memory or Power. Edit the widget to pick which.</td></tr>
+  <tr><td>Medium</td><td>CPU cores, GPU and Neural Engine side by side, with memory and a power split.</td></tr>
+  <tr><td>Large</td><td>Everything: CPU cores with history, GPU, Neural Engine, memory and power.</td></tr>
+</table>
+<h3>How it works</h3>
+<p>A widget runs in a sandbox and cannot read hardware counters or run <code>powermetrics</code>. The Silicon Info app therefore keeps sampling and writes a small snapshot file into an App Group container that both the app and the widget are entitled to use. The widget reads that file whenever macOS redraws it.</p>
+<div class="note">macOS limits how often widgets redraw, so expect an update every several seconds, not every second like the floating panel. Keep the app running for fresh data. If it is not running, the widget shows a small note asking you to open it.</div>
+
+<h2>6. Data sources</h2>
 <table>
   <tr><th>Data</th><th>Source</th><th>Needs admin</th></tr>
   <tr><td>Per-core load, user and system split</td><td>Mach <code>host_processor_info</code></td><td>No</td></tr>
@@ -122,7 +137,7 @@
 </table>
 <p>Core order follows Apple Silicon convention: efficiency cores are numbered first, then performance cores.</p>
 
-<h2>6. Privileges and safety</h2>
+<h2>7. Privileges and safety</h2>
 <p>Reading power and frequency needs root access. On launch the widget shows the standard macOS administrator dialog. After approval, a small shell loop runs as root. It does only one thing: it runs <code>powermetrics</code> once per second and writes the text output to <code>/private/tmp/siliconwidget-powermetrics.txt</code>, which the widget reads.</p>
 <ul>
   <li>The loop exits on its own about a second after the last Silicon Info process quits.</li>
@@ -132,7 +147,7 @@
 </ul>
 <div class="note">The output file is readable by other local users, so process names on the machine are visible to them while the widget runs.</div>
 
-<h2>7. Limitations</h2>
+<h2>8. Limitations</h2>
 <p>macOS does not expose the following on this hardware, so they are not shown:</p>
 <ul>
   <li><b>Neural Engine utilization, frequency or per-process use.</b> Only power draw is available.</li>
@@ -142,28 +157,37 @@
 </ul>
 <p>Per-process GPU time is often zero because few processes keep the GPU busy at any moment.</p>
 
-<h2>8. Troubleshooting</h2>
+<h2>9. Troubleshooting</h2>
 <table>
   <tr><th>Symptom</th><th>Cause and fix</th></tr>
   <tr><td>Power shows <code>n/a</code></td><td>The administrator dialog was cancelled. Quit and relaunch, then approve it.</td></tr>
   <tr><td>Power graphs are empty after launch</td><td>History fills at one sample per second. Wait a minute.</td></tr>
   <tr><td>Neural Engine reads 0 W</td><td>The engine is idle. Run something that uses it, such as Core ML work, to see it move.</td></tr>
-  <tr><td>Widget is off screen</td><td>Delete the saved position with <code>defaults delete com.raymunro.siliconinfo</code> and relaunch.</td></tr>
+  <tr><td>Widget is off screen</td><td>Delete the saved position with <code>defaults delete com.raymondmunro.siliconinfo</code> and relaunch.</td></tr>
+  <tr><td>Widget says &quot;Open Silicon Info to update&quot;</td><td>The app is not running, so no fresh snapshot is being shared. Start the app.</td></tr>
+  <tr><td>Widget is missing from the gallery</td><td>Run the app once. If it still does not appear, copy the app to the Applications folder and open it from there.</td></tr>
   <tr><td>Build fails</td><td>Install the command line tools with <code>xcode-select --install</code>.</td></tr>
 </table>
 
-<h2>9. Project layout</h2>
+<h2>10. Project layout</h2>
 <table>
   <tr><th>Path</th><th>Purpose</th></tr>
-  <tr><td><code>Sources/SiliconWidget/main.swift</code></td><td>Creates the borderless floating window and keeps it anchored and on screen.</td></tr>
-  <tr><td><code>Sources/SiliconWidget/Sampler.swift</code></td><td>Samples core load and GPU statistics each second and holds the history.</td></tr>
-  <tr><td><code>Sources/SiliconWidget/Memory.swift</code></td><td>Reads unified memory usage, pressure, swap and the top processes by memory.</td></tr>
-  <tr><td><code>Sources/SiliconWidget/PowerFeed.swift</code></td><td>Starts the privileged loop and parses the <code>powermetrics</code> output.</td></tr>
-  <tr><td><code>Sources/SiliconWidget/Views.swift</code></td><td>The overview cards and expand and collapse behavior.</td></tr>
-  <tr><td><code>Sources/SiliconWidget/Detail.swift</code></td><td>The CPU, GPU, Neural Engine, Memory and Power detail views.</td></tr>
+  <tr><td><code>Sources/SiliconInfo/main.swift</code></td><td>Creates the borderless floating window and keeps it anchored and on screen.</td></tr>
+  <tr><td><code>Sources/SiliconInfo/Sampler.swift</code></td><td>Samples core load and GPU statistics each second and holds the history.</td></tr>
+  <tr><td><code>Sources/SiliconInfo/Memory.swift</code></td><td>Reads unified memory usage, pressure, swap and the top processes by memory.</td></tr>
+  <tr><td><code>Sources/SiliconInfo/PowerFeed.swift</code></td><td>Starts the privileged loop and parses the <code>powermetrics</code> output.</td></tr>
+  <tr><td><code>Sources/SiliconInfo/Views.swift</code></td><td>The overview cards and expand and collapse behavior.</td></tr>
+  <tr><td><code>Sources/SiliconInfo/Detail.swift</code></td><td>The CPU, GPU, Neural Engine, Memory and Power detail views.</td></tr>
+  <tr><td><code>Sources/SiliconInfo/WidgetBridge.swift</code></td><td>Builds the snapshot shared with the widget and asks WidgetKit to redraw.</td></tr>
+  <tr><td><code>Sources/SiliconInfoWidget/</code></td><td>The WidgetKit extension: timeline provider and widget configuration.</td></tr>
+  <tr><td><code>Sources/Shared/</code></td><td>Data model, shared drawing code and the small, medium and large layouts, used by both targets.</td></tr>
+  <tr><td><code>project.yml</code></td><td>Xcode project definition, generated by XcodeGen.</td></tr>
   <tr><td><code>scripts/make_icon.swift</code></td><td>Draws the app icon.</td></tr>
-  <tr><td><code>build.sh</code></td><td>Builds and signs the app bundle.</td></tr>
+  <tr><td><code>build.sh</code></td><td>Generates the project and builds the signed app with its widget.</td></tr>
 </table>
 
-<footer>Silicon Info &middot; Copyright &copy; 2026 Ray Munro. All rights reserved.</footer>
+<h2>11. License</h2>
+<p>Silicon Info is free software: you can redistribute it and modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but without any warranty, without even the implied warranty of merchantability or fitness for a particular purpose. See the LICENSE file for the full text, or <code>https://www.gnu.org/licenses/</code>.</p>
+
+<footer>Silicon Info &middot; Copyright &copy; 2026 Ray Munro &middot; GNU General Public License v3 or later</footer>
 </body></html>

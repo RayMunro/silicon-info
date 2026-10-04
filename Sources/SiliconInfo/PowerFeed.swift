@@ -1,3 +1,19 @@
+// Silicon Info
+// Copyright (C) 2026 Ray Munro
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import Foundation
 
 /// Exact CPU/GPU/ANE power, per-core frequency and per-process usage from `powermetrics`, which needs root.
@@ -32,7 +48,7 @@ final class PowerFeed {
            Date().timeIntervalSince(m) < 3 { return }
         // Exits once no Silicon Info process has been seen for about six seconds, so a quick relaunch reuses it.
         let loop = "rm -f \(path) \(path).tmp; miss=0; while [ $miss -lt 6 ]; do "
-            + "if pgrep -x SiliconWidget > /dev/null; then miss=0; else miss=$((miss+1)); fi; "
+            + "if pgrep -x SiliconInfo > /dev/null; then miss=0; else miss=$((miss+1)); fi; "
             + "/usr/bin/powermetrics --samplers cpu_power,gpu_power,ane_power,tasks --show-process-gpu -i 1000 -n 1 > \(path).tmp 2>/dev/null "
             + "&& mv \(path).tmp \(path) || sleep 2; done"
         let shell = "sh -c '\(loop)' > /dev/null 2>&1 &"
