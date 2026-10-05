@@ -69,6 +69,10 @@ The floating panel has a title bar with a close button at the left and the copyr
 | Memory | Used and total memory with a breakdown bar and pressure level | Breakdown (app, wired, compressed, cached, free), free cached memory button, pressure, swap, paging rates, top processes, history |
 | Power | CPU, GPU and Neural Engine share of total | Live split, stacked two-minute history, average, peak and energy per block |
 
+## Download
+
+Each [release](https://github.com/RayMunro/silicon-info/releases) has a ready-to-run app, `Silicon-Info-<version>-macOS.zip`, signed with a Developer ID certificate and notarized by Apple. Unzip it, move Silicon Info to your Applications folder and open it. It needs a Mac with Apple Silicon and macOS 14 or later. To build it yourself instead, follow the steps below.
+
 ## Requirements
 
 - A Mac with Apple Silicon
