@@ -77,12 +77,12 @@ struct WidgetView: View {
             .help("Close panel (Silicon Info keeps running in the menu bar)")
             Spacer()
             Text("Silicon Info  \u{00B7}  \u{00A9} 2026 Ray Munro")
-                .font(.system(size: 10.5, weight: .medium)).foregroundStyle(.secondary)
+                .font(.system(size: 12.5, weight: .semibold)).foregroundStyle(.white.opacity(0.85))
             Spacer()
             Color.clear.frame(width: 14, height: 14)   // balances the close button so the text stays centred
         }
         .padding(.horizontal, 4)
-        .frame(height: 20)
+        .frame(height: 22)
         .background(WindowDragHandle())
     }
 

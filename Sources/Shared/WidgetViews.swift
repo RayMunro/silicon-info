@@ -52,7 +52,7 @@ private func tappable<C: View>(_ content: C) -> some View {
 
 private struct CopyrightLine: View {
     var body: some View {
-        Text("\u{00A9} 2026 Ray Munro").font(.system(size: 9.5, weight: .medium)).foregroundStyle(.white.opacity(0.75)).lineLimit(1)
+        Text("\u{00A9} 2026 Ray Munro").font(.system(size: 12.5, weight: .semibold)).foregroundStyle(.white.opacity(0.85)).lineLimit(1)
     }
 }
 
@@ -112,18 +112,18 @@ struct SmallWidgetView: View {
     @ViewBuilder private var ring: some View {
         switch component {
         case .cpu:
-            Ring(value: d.cpuLoad, color: Palette.cpuP, label: pct(d.cpuLoad), sub: "LOAD", line: 8, labelSize: 18).frame(width: 62, height: 62)
+            Ring(value: d.cpuLoad, color: Palette.cpuP, label: pct(d.cpuLoad), sub: "LOAD", line: 8, labelSize: 18).frame(width: 54, height: 54)
         case .gpu:
-            Ring(value: d.gpuUtil, color: Palette.gpu, label: pct(d.gpuUtil), sub: "DEVICE", line: 8, labelSize: 18).frame(width: 62, height: 62)
+            Ring(value: d.gpuUtil, color: Palette.gpu, label: pct(d.gpuUtil), sub: "DEVICE", line: 8, labelSize: 18).frame(width: 54, height: 54)
         case .neuralEngine:
             Ring(value: min(d.aneW / WidgetData.aneMaxWatts, 1), color: Palette.ane, label: String(format: "%.1f", d.aneW),
-                 sub: "WATTS", line: 8, labelSize: 18).frame(width: 62, height: 62)
+                 sub: "WATTS", line: 8, labelSize: 18).frame(width: 54, height: 54)
         case .memory:
             Ring(value: d.memUsed / max(d.memTotal, 1), color: Palette.mem, label: String(format: "%.1f", d.memUsed / 1_073_741_824),
-                 sub: "GB USED", line: 8, labelSize: 18).frame(width: 62, height: 62)
+                 sub: "GB USED", line: 8, labelSize: 18).frame(width: 54, height: 54)
         case .power:
             Ring(value: min(d.totalW / 40, 1), color: .white, label: String(format: "%.1f", d.totalW), sub: "WATTS", line: 8, labelSize: 18)
-                .frame(width: 62, height: 62)
+                .frame(width: 54, height: 54)
         }
     }
 
@@ -144,24 +144,24 @@ struct MediumWidgetView: View {
     let d: WidgetData
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 4) {
             HStack(alignment: .top, spacing: 14) {
                 VStack(alignment: .leading, spacing: 3) {
                     Header(title: "CPU", tint: Palette.cpuP, trailing: watts(d.cpuW, known: d.powerKnown))
                     Text("PERFORMANCE \(pct(avg(d.pCores)))").font(.system(size: 8, weight: .semibold)).foregroundStyle(Palette.cpuP)
-                    CoreBars(loads: d.pCores, color: Palette.cpuP, height: 17, spacing: 2)
+                    CoreBars(loads: d.pCores, color: Palette.cpuP, height: 14, spacing: 2)
                     Text("EFFICIENCY \(pct(avg(d.eCores)))").font(.system(size: 8, weight: .semibold)).foregroundStyle(Palette.cpuE)
-                    CoreBars(loads: d.eCores, color: Palette.cpuE, height: 17, spacing: 2)
+                    CoreBars(loads: d.eCores, color: Palette.cpuE, height: 14, spacing: 2)
                 }.frame(maxWidth: .infinity)
                 VStack(spacing: 4) {
                     Header(title: "GPU", tint: Palette.gpu, trailing: watts(d.gpuW, known: d.powerKnown))
                     Ring(value: d.gpuUtil, color: Palette.gpu, label: pct(d.gpuUtil), sub: "DEVICE", line: 6, labelSize: 14, subSize: 7)
-                        .frame(width: 54, height: 54)
+                        .frame(width: 46, height: 46)
                 }.frame(width: 84)
                 VStack(spacing: 4) {
                     Header(title: "ANE", tint: Palette.ane, trailing: watts(d.aneW, known: d.powerKnown))
                     Ring(value: min(d.aneW / WidgetData.aneMaxWatts, 1), color: Palette.ane, label: String(format: "%.1f", d.aneW),
-                         sub: "WATTS", line: 6, labelSize: 14, subSize: 7).frame(width: 54, height: 54)
+                         sub: "WATTS", line: 6, labelSize: 14, subSize: 7).frame(width: 46, height: 46)
                 }.frame(width: 84)
             }
             Spacer(minLength: 0)
@@ -188,24 +188,24 @@ struct LargeWidgetView: View {
     let d: WidgetData
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 5) {
             panel {
                 Header(title: "CPU", tint: Palette.cpuP, trailing: watts(d.cpuW, known: d.powerKnown), size: 11)
                 Text("PERFORMANCE · \(d.pCores.count)   \(pct(avg(d.pCores)))").font(.system(size: 8.5, weight: .semibold)).foregroundStyle(Palette.cpuP)
-                CoreBars(loads: d.pCores, color: Palette.cpuP, height: 15)
+                CoreBars(loads: d.pCores, color: Palette.cpuP, height: 13)
                 Text("EFFICIENCY · \(d.eCores.count)   \(pct(avg(d.eCores)))").font(.system(size: 8.5, weight: .semibold)).foregroundStyle(Palette.cpuE)
-                CoreBars(loads: d.eCores, color: Palette.cpuE, height: 15)
+                CoreBars(loads: d.eCores, color: Palette.cpuE, height: 13)
             }
             HStack(spacing: 7) {
                 panel {
                     Header(title: "GPU", tint: Palette.gpu, trailing: watts(d.gpuW, known: d.powerKnown), size: 11)
                     Ring(value: d.gpuUtil, color: Palette.gpu, label: pct(d.gpuUtil), sub: "DEVICE", line: 6, labelSize: 12)
-                        .frame(width: 46, height: 46).frame(maxWidth: .infinity)
+                        .frame(width: 42, height: 42).frame(maxWidth: .infinity)
                 }
                 panel {
                     Header(title: "NEURAL ENGINE", tint: Palette.ane, trailing: watts(d.aneW, known: d.powerKnown), size: 11)
                     Ring(value: min(d.aneW / WidgetData.aneMaxWatts, 1), color: Palette.ane, label: String(format: "%.1f", d.aneW),
-                         sub: "WATTS", line: 6, labelSize: 12).frame(width: 46, height: 46).frame(maxWidth: .infinity)
+                         sub: "WATTS", line: 6, labelSize: 12).frame(width: 42, height: 42).frame(maxWidth: .infinity)
                 }
             }
             tappable(panel {
