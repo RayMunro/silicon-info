@@ -49,8 +49,11 @@ struct WidgetView: View {
     }()
 
     var body: some View {
-        Group {
-            if let open { detail(open) } else { overview }
+        VStack(spacing: 8) {
+            titleBar
+            Group {
+                if let open { detail(open) } else { overview }
+            }
         }
         .padding(14)
         .frame(width: 400)
@@ -62,6 +65,25 @@ struct WidgetView: View {
             Button("Hide Panel") { NotificationCenter.default.post(name: .hidePanel, object: nil) }
             Button("Quit Silicon Info") { NSApp.terminate(nil) }
         }
+    }
+
+    /// Close button, copyright and the area you drag to move the panel.
+    private var titleBar: some View {
+        HStack(spacing: 8) {
+            Button { NotificationCenter.default.post(name: .hidePanel, object: nil) } label: {
+                Image(systemName: "xmark.circle.fill").font(.system(size: 14)).foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Close panel (Silicon Info keeps running in the menu bar)")
+            Spacer()
+            Text("Silicon Info  \u{00B7}  \u{00A9} 2026 Ray Munro")
+                .font(.system(size: 10.5, weight: .medium)).foregroundStyle(.secondary)
+            Spacer()
+            Color.clear.frame(width: 14, height: 14)   // balances the close button so the text stays centred
+        }
+        .padding(.horizontal, 4)
+        .frame(height: 20)
+        .background(WindowDragHandle())
     }
 
     private func tint(_ p: Panel) -> Color {
@@ -142,8 +164,6 @@ struct WidgetView: View {
                 StackedBar(parts: [(s.cpuWatts / total, Palette.cpuP), (s.gpuWatts / total, Palette.gpu), (s.aneWatts / total, Palette.ane)], height: 8)
             }
             .contentShape(Rectangle()).onTapGesture { withAnimation(.easeOut(duration: 0.2)) { open = .power } }
-            Text("Silicon Info  ·  © 2026 Ray Munro")
-                .font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(.top, 4)
         }
     }
 }
@@ -162,5 +182,17 @@ struct MiniBar: View {
             }.frame(height: 5)
             Text(pct(value)).font(.system(size: 9, design: .monospaced)).frame(width: 30, alignment: .trailing)
         }
+    }
+}
+
+/// An area that moves the window when dragged. Cards react to clicks, so the panel needs a dedicated handle.
+struct WindowDragHandle: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView { DragView() }
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    private final class DragView: NSView {
+        override var mouseDownCanMoveWindow: Bool { false }
+        override func mouseDown(with event: NSEvent) { window?.performDrag(with: event) }
+        override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
     }
 }

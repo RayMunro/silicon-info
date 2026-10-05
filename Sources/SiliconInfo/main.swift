@@ -20,6 +20,11 @@ import Combine
 
 extension Notification.Name { static let hidePanel = Notification.Name("SiliconInfoHidePanel") }
 
+/// A borderless window that can still take focus, so buttons and dragging work reliably.
+final class PanelWindow: NSWindow {
+    override var canBecomeKey: Bool { true }
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMenuDelegate {
     var window: NSWindow!
     let sampler = Sampler()
@@ -30,7 +35,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     func applicationDidFinishLaunching(_ n: Notification) {
         let host = NSHostingController(rootView: WidgetView(sampler: sampler))
         host.sizingOptions = [.preferredContentSize]   // window follows the content when a card expands
-        window = NSWindow(contentRect: NSRect(origin: .zero, size: host.view.fittingSize),
+        window = PanelWindow(contentRect: NSRect(origin: .zero, size: host.view.fittingSize),
                           styleMask: [.borderless], backing: .buffered, defer: false)
         window.contentViewController = host
         window.delegate = self

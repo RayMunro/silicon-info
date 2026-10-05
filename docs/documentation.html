@@ -58,7 +58,7 @@
 <p>This generates the Xcode project from <code>project.yml</code>, then builds and signs <code>SiliconInfo.app</code> together with its widget extension.</p>
 <h3>Run</h3>
 <pre>open build/Build/Products/Release/SiliconInfo.app</pre>
-<p>On launch the app asks for your administrator password through the standard macOS dialog. The floating panel appears at the top right of the main display. The app has no Dock icon, but it adds a menu bar item. Drag the panel anywhere by its background. Its position is remembered, and the window is kept fully on screen when a card expands.</p>
+<p>On launch the app asks for your administrator password through the standard macOS dialog. The floating panel appears at the top right of the main display. The app has no Dock icon, but it adds a menu bar item. The panel has a title bar with a close button at the left and the copyright line in the middle. Drag the title bar to move the panel anywhere on screen. Its position is remembered, and the window is kept fully on screen when a card expands.</p>
 <h3>Hide process names</h3>
 <p>The CPU, GPU and Memory views list process names. To hide those lists, for example before sharing your screen, start the app with the privacy option:</p>
 <pre>build/Build/Products/Release/SiliconInfo.app/Contents/MacOS/SiliconInfo --hide-processes</pre>
@@ -116,9 +116,9 @@
 <h2>5. Menu bar and desktop widget</h2>
 <h3>Menu bar</h3>
 <p>The app adds a menu bar item that shows the live total CPU load next to its icon. Its menu shows live CPU, GPU, Neural Engine and memory readings, Free Cached Memory, a Hide Panel or Show Panel toggle for the floating panel, and Quit Silicon Info. If you use a menu bar manager, the icon may be inside its hidden section.</p>
-<p>To get rid of the floating panel, right-click it and choose Hide Panel, or use the menu bar item. It stays hidden across launches, and the desktop widget and menu bar item keep working. Opening the app again from Finder or Spotlight shows the panel.</p>
+<p>To get rid of the floating panel, click the close button in its title bar, right-click it and choose Hide Panel, or use the menu bar item. It stays hidden across launches, and the desktop widget and menu bar item keep working. Opening the app again from Finder or Spotlight shows the panel.</p>
 <h3>Desktop widget</h3>
-<p>Silicon Info includes a WidgetKit widget. Run the app once, then right-click the desktop, choose Edit Widgets and search for Silicon Info.</p>
+<p>Silicon Info includes a WidgetKit widget. Every size carries the copyright line. Run the app once, then right-click the desktop, choose Edit Widgets and search for Silicon Info.</p>
 <table>
   <tr><th>Size</th><th>Shows</th></tr>
   <tr><td>Small</td><td>One component of your choice: CPU, GPU, Neural Engine, Memory or Power. Edit the widget to pick which. When it shows Memory, tapping it frees cached memory.</td></tr>
@@ -179,7 +179,7 @@
   <tr><td>Widget says &quot;Open Silicon Info to update&quot;</td><td>The app is not running, so no fresh snapshot is being shared. Start the app.</td></tr>
   <tr><td>Free Cached Memory says &quot;Needs admin access&quot;</td><td>The administrator dialog was cancelled or the privileged loop has stopped. Quit and relaunch, then approve the dialog.</td></tr>
   <tr><td>Desktop widget looks grey</td><td>macOS draws widgets in grey when another app is in front. Set Widget style to Full-color in System Settings, under Desktop &amp; Dock.</td></tr>
-  <tr><td>Floating panel is gone</td><td>It was hidden. Use Show Panel in the menu bar menu, or open the app again from Finder or Spotlight.</td></tr>
+  <tr><td>Floating panel is gone</td><td>It was closed or hidden. Use Show Panel in the menu bar menu, or open the app again from Finder or Spotlight.</td></tr>
   <tr><td>Widget is missing from the gallery</td><td>Run the app once. If it still does not appear, copy the app to the Applications folder and open it from there.</td></tr>
   <tr><td>Build fails</td><td>Install the command line tools with <code>xcode-select --install</code>.</td></tr>
 </table>

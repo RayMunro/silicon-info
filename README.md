@@ -2,7 +2,7 @@
 
 Silicon Info splits what an Apple Silicon Mac is doing into its parts: CPU performance and efficiency cores, the GPU, the Neural Engine, unified memory (DRAM) and total power. It comes in three forms that share the same data:
 
-- a **floating panel** on the desktop, where you click any card to expand it into a detailed view
+- a **floating panel** on the desktop, where you click any card to expand it into a detailed view. Drag its title bar to move it and use the close button to dismiss it.
 - a real **desktop widget** (small, medium and large) for the desktop and Notification Center
 - a **menu bar item** with the live CPU load
 
@@ -30,7 +30,7 @@ Run the app once, then right-click the desktop, choose **Edit Widgets** and sear
 
 The widget is sandboxed and cannot read hardware counters itself, so the Silicon Info app keeps sampling and shares a snapshot with it through an App Group. Keep the app running for fresh data. macOS limits how often widgets redraw, so expect updates every several seconds, not every second like the floating panel. If the app is not running the widget says so.
 
-macOS draws desktop widgets in grey when another app is in front. To keep them in colour, set Widget style to Full-color in System Settings, under Desktop & Dock.
+Every widget size carries the copyright line. macOS draws desktop widgets in grey when another app is in front. To keep them in colour, set Widget style to Full-color in System Settings, under Desktop & Dock.
 
 ### Free memory
 
@@ -42,7 +42,7 @@ This runs `purge`, which empties the disk cache (the Cached files slice). It doe
 
 The menu bar item shows the live total CPU load next to its icon. Its menu shows live CPU, GPU, Neural Engine and memory readings, **Free Cached Memory**, a Hide Panel or Show Panel toggle for the floating panel, and Quit Silicon Info.
 
-To get rid of the floating panel, right-click it and choose Hide Panel (or use the menu bar item). It stays hidden across launches, and the desktop widget and menu bar item keep working. Opening the app again from Finder or Spotlight shows the panel.
+The floating panel has a title bar with a close button at the left and the copyright line in the middle. Drag the title bar to move the panel anywhere on screen. To get rid of the panel, click the close button, right-click it and choose Hide Panel, or use the menu bar item. It stays hidden across launches, and the desktop widget and menu bar item keep working. Opening the app again from Finder or Spotlight shows the panel.
 
 ## Screenshots
 
