@@ -55,7 +55,7 @@ func renderWidgetImages(_ d: WidgetData, to dir: String) {
         try? png.write(to: URL(fileURLWithPath: "\(dir)/\(name).png"))
     }
     try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
-    for c in ComponentChoice.allCases { save(SmallWidgetView(d: d, component: c), width: 170, height: 170, name: "small-\(c.rawValue)") }
-    save(MediumWidgetView(d: d), width: 364, height: 170, name: "medium")
-    save(LargeWidgetView(d: d), width: 364, height: 382, name: "large")
+    for c in ComponentChoice.allCases { save(SmallWidgetView(d: d, component: c), width: 158, height: 158, name: "small-\(c.rawValue)") }
+    save(MediumWidgetView(d: d), width: 338, height: 158, name: "medium")
+    save(LargeWidgetView(d: d), width: 346, height: 341, name: "large")
 }

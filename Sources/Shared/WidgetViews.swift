@@ -184,28 +184,26 @@ struct LargeWidgetView: View {
             panel {
                 Header(title: "CPU", tint: Palette.cpuP, trailing: watts(d.cpuW, known: d.powerKnown), size: 11)
                 Text("PERFORMANCE · \(d.pCores.count)   \(pct(avg(d.pCores)))").font(.system(size: 8.5, weight: .semibold)).foregroundStyle(Palette.cpuP)
-                CoreBars(loads: d.pCores, color: Palette.cpuP, height: 19)
+                CoreBars(loads: d.pCores, color: Palette.cpuP, height: 18)
                 Text("EFFICIENCY · \(d.eCores.count)   \(pct(avg(d.eCores)))").font(.system(size: 8.5, weight: .semibold)).foregroundStyle(Palette.cpuE)
-                CoreBars(loads: d.eCores, color: Palette.cpuE, height: 19)
-                Sparkline(values: d.cpuHist, color: Palette.cpuP).frame(height: 13)
+                CoreBars(loads: d.eCores, color: Palette.cpuE, height: 18)
             }
             HStack(spacing: 7) {
                 panel {
                     Header(title: "GPU", tint: Palette.gpu, trailing: watts(d.gpuW, known: d.powerKnown), size: 11)
                     Ring(value: d.gpuUtil, color: Palette.gpu, label: pct(d.gpuUtil), sub: "DEVICE", line: 6, labelSize: 14)
-                        .frame(width: 58, height: 58).frame(maxWidth: .infinity)
+                        .frame(width: 54, height: 54).frame(maxWidth: .infinity)
                 }
                 panel {
                     Header(title: "NEURAL ENGINE", tint: Palette.ane, trailing: watts(d.aneW, known: d.powerKnown), size: 11)
                     Ring(value: min(d.aneW / WidgetData.aneMaxWatts, 1), color: Palette.ane, label: String(format: "%.1f", d.aneW),
-                         sub: "WATTS", line: 6, labelSize: 14).frame(width: 58, height: 58).frame(maxWidth: .infinity)
+                         sub: "WATTS", line: 6, labelSize: 14).frame(width: 54, height: 54).frame(maxWidth: .infinity)
                 }
             }
             tappable(panel {
-                Header(title: "MEMORY", tint: Palette.mem, trailing: memoryUsage(d), size: 11)
+                Header(title: d.purgeNote.isEmpty ? "MEMORY  ·  TAP TO FREE" : "MEMORY", tint: Palette.mem, trailing: memoryUsage(d), size: 11)
                 StackedBar(parts: [(d.memApp / max(d.memTotal, 1), Palette.mem), (d.memWired / max(d.memTotal, 1), Palette.mem.opacity(0.6)),
                                    (d.memCompressed / max(d.memTotal, 1), Palette.mem.opacity(0.35))], height: 7)
-                Text("Tap to free cached memory").font(.system(size: 8)).foregroundStyle(.secondary)
             }.contentShape(Rectangle()))
             panel {
                 let t = max(d.totalW, 0.001)
