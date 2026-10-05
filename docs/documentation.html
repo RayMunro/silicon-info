@@ -31,7 +31,7 @@
 </div>
 
 <h2>1. Overview</h2>
-<p>Silicon Info is a small always-visible panel for the desktop. It breaks Mac activity into the pieces that make up an Apple Silicon chip instead of showing one combined number. The panel has five cards:</p>
+<p>Silicon Info breaks Mac activity into the pieces that make up an Apple Silicon chip instead of showing one combined number. It comes in three forms that share the same data: a floating panel on the desktop, a real desktop widget, and a menu bar item with the live CPU load. The panel has five cards:</p>
 <ul>
   <li><span class="tag cpu">CPU</span> performance cores and efficiency cores, shown separately.</li>
   <li><span class="tag gpu">GPU</span> device utilization with render and tiler load.</li>
@@ -39,7 +39,7 @@
   <li><span class="tag mem">Memory</span> unified memory (DRAM) usage, pressure and swap.</li>
   <li><b>Power</b> how total power divides between the three blocks.</li>
 </ul>
-<p>Each card is a summary. Click a card to expand it into a detailed view, and use the Back control to return. The same data is also available as a real macOS desktop widget in three sizes.</p>
+<p>Each card is a summary. Click a card to expand it into a detailed view, and use the Back control to return. The widget is available in three sizes.</p>
 
 <h2>2. Requirements</h2>
 <table>
@@ -48,7 +48,7 @@
   <tr><td>Operating system</td><td>macOS 14 or later</td></tr>
   <tr><td>Build tools</td><td>Xcode and XcodeGen (<code>brew install xcodegen</code>)</td></tr>
   <tr><td>Code signing</td><td>An Apple Developer team. Widgets and App Groups do not work with ad hoc signing.</td></tr>
-  <tr><td>Privileges</td><td>An administrator password, entered once per launch, for power and frequency data</td></tr>
+  <tr><td>Privileges</td><td>An administrator password, entered once per launch, for power and frequency data and for freeing cached memory</td></tr>
 </table>
 
 <h2>3. Installation and use</h2>
@@ -58,11 +58,12 @@
 <p>This generates the Xcode project from <code>project.yml</code>, then builds and signs <code>SiliconInfo.app</code> together with its widget extension.</p>
 <h3>Run</h3>
 <pre>open build/Build/Products/Release/SiliconInfo.app</pre>
-<p>The widget appears at the top right of the main display. It has no Dock icon or menu bar item. Drag it anywhere by its background. Its position is remembered, and the window is kept fully on screen when a card expands.</p>
+<p>On launch the app asks for your administrator password through the standard macOS dialog. The floating panel appears at the top right of the main display. The app has no Dock icon, but it adds a menu bar item. Drag the panel anywhere by its background. Its position is remembered, and the window is kept fully on screen when a card expands.</p>
 <h3>Hide process names</h3>
-<p>The CPU, GPU and Memory views list process names. To hide those lists, for example before sharing your screen, start the widget with the privacy option:</p>
+<p>The CPU, GPU and Memory views list process names. To hide those lists, for example before sharing your screen, start the app with the privacy option:</p>
 <pre>build/Build/Products/Release/SiliconInfo.app/Contents/MacOS/SiliconInfo --hide-processes</pre>
 <h3>Quit</h3>
+<p>Use Quit Silicon Info in the menu bar menu, or run:</p>
 <pre>pkill SiliconInfo</pre>
 
 <h2>4. The views</h2>
@@ -99,10 +100,11 @@
 <p>Shows current power, average and peak over two minutes, energy used since launch, an active or idle state and a power history chart. Load is power as a share of an assumed 8 W ceiling, so treat the ring as relative.</p>
 
 <h3>Memory detail</h3>
-<p>Apple Silicon uses one pool of unified memory shared by the CPU, GPU and Neural Engine, so this is the DRAM view. It needs no administrator rights.</p>
+<p>Apple Silicon uses one pool of unified memory shared by the CPU, GPU and Neural Engine, so this is the DRAM view. Viewing it needs no administrator rights. The Free memory button does.</p>
 <table>
   <tr><th>Section</th><th>Contents</th></tr>
   <tr><td>Unified memory</td><td>Used, available and total memory, with a bar and a legend for app memory, wired, compressed, cached files and free. Used memory follows the Activity Monitor definition: app plus wired plus compressed.</td></tr>
+  <tr><td>Free memory</td><td>A button that frees cached memory, with the amount freed shown beside it. See the Free memory section below.</td></tr>
   <tr><td>Pressure and swap</td><td>The system pressure level (normal, warning or critical), swap in use and swap size, and the rate of data paged in and out.</td></tr>
   <tr><td>Top processes</td><td>The processes holding the most resident memory, refreshed every five seconds.</td></tr>
   <tr><td>History</td><td>Two minutes of memory use.</td></tr>
@@ -113,7 +115,7 @@
 
 <h2>5. Menu bar and desktop widget</h2>
 <h3>Menu bar</h3>
-<p>The app adds a menu bar item that shows the live total CPU load next to its icon. Its menu shows live CPU, GPU, Neural Engine and memory readings, a Hide Panel or Show Panel toggle for the floating panel, and Quit Silicon Info. If you use a menu bar manager, the icon may be inside its hidden section.</p>
+<p>The app adds a menu bar item that shows the live total CPU load next to its icon. Its menu shows live CPU, GPU, Neural Engine and memory readings, Free Cached Memory, a Hide Panel or Show Panel toggle for the floating panel, and Quit Silicon Info. If you use a menu bar manager, the icon may be inside its hidden section.</p>
 <p>To get rid of the floating panel, right-click it and choose Hide Panel, or use the menu bar item. It stays hidden across launches, and the desktop widget and menu bar item keep working. Opening the app again from Finder or Spotlight shows the panel.</p>
 <h3>Desktop widget</h3>
 <p>Silicon Info includes a WidgetKit widget. Run the app once, then right-click the desktop, choose Edit Widgets and search for Silicon Info.</p>
@@ -121,13 +123,14 @@
   <tr><th>Size</th><th>Shows</th></tr>
   <tr><td>Small</td><td>One component of your choice: CPU, GPU, Neural Engine, Memory or Power. Edit the widget to pick which. When it shows Memory, tapping it frees cached memory.</td></tr>
   <tr><td>Medium</td><td>CPU cores, GPU and Neural Engine side by side, with memory and a power split. Tap the memory bar to free cached memory.</td></tr>
-  <tr><td>Large</td><td>Everything: CPU cores with history, GPU, Neural Engine, memory and power. Tap the memory panel to free cached memory.</td></tr>
+  <tr><td>Large</td><td>CPU cores, GPU, Neural Engine, memory and power. Tap the memory panel to free cached memory.</td></tr>
 </table>
 <h3>Free memory</h3>
 <p>Tapping the memory area of the widget frees cached memory. The same action is available as a button in the Memory detail view and as Free Cached Memory in the menu bar menu. The widget then shows how much was freed for about a minute.</p>
 <p>This runs <code>purge</code>, which empties the disk cache (the Cached files slice). It does not free memory used by apps, since only quitting apps does that, and the cache refills as you work, so things may feel briefly slower. It needs the administrator prompt to have been approved at launch, otherwise the widget says so.</p>
 <h3>How it works</h3>
 <p>A widget runs in a sandbox and cannot read hardware counters or run <code>powermetrics</code>. The Silicon Info app therefore keeps sampling and writes a small snapshot file into an App Group container that both the app and the widget are entitled to use. The widget reads that file whenever macOS redraws it.</p>
+<div class="note">macOS draws desktop widgets in grey when another app is in front. To keep them in colour, set Widget style to Full-color in System Settings, under Desktop &amp; Dock.</div>
 <div class="note">macOS limits how often widgets redraw, so expect an update every several seconds, not every second like the floating panel. Keep the app running for fresh data. If it is not running, the widget shows a small note asking you to open it.</div>
 
 <h2>6. Data sources</h2>
@@ -141,19 +144,20 @@
   <tr><td>Core and cluster frequency, residency</td><td><code>powermetrics</code></td><td>Yes</td></tr>
   <tr><td>GPU frequency and residency</td><td><code>powermetrics</code></td><td>Yes</td></tr>
   <tr><td>Per-process CPU and GPU time</td><td><code>powermetrics</code> tasks sampler</td><td>Yes</td></tr>
+  <tr><td>Freeing cached memory</td><td><code>purge</code></td><td>Yes</td></tr>
 </table>
 <p>Core order follows Apple Silicon convention: efficiency cores are numbered first, then performance cores.</p>
 
 <h2>7. Privileges and safety</h2>
-<p>Reading power and frequency needs root access. On launch the widget shows the standard macOS administrator dialog. After approval, a small shell loop runs as root. It does only one thing: it runs <code>powermetrics</code> once per second and writes the text output to <code>/private/tmp/siliconwidget-powermetrics.txt</code>, which the widget reads.</p>
+<p>Reading power and frequency needs root access. On launch the app shows the standard macOS administrator dialog. After approval, a small shell loop runs as root. It does two things: it runs <code>powermetrics</code> once per second and writes the text output to <code>/private/tmp/siliconwidget-powermetrics.txt</code>, which the app reads, and it runs <code>purge</code> when asked to free cached memory.</p>
 <ul>
-  <li>The loop exits on its own about a second after the last Silicon Info process quits.</li>
+  <li>The loop exits on its own about six seconds after the last Silicon Info process quits.</li>
   <li>Relaunching quickly reuses the running loop and does not ask again.</li>
   <li>Nothing is sent over the network. The output file contains only power, frequency and process names with CPU and GPU time.</li>
-  <li>If you cancel the dialog, the widget keeps running and shows <code>n/a</code> for the values that need it.</li>
+  <li>If you cancel the dialog, the app keeps running and shows <code>n/a</code> for the values that need it. Free Cached Memory then reports that it needs admin access.</li>
   <li>The privileged loop also runs <code>/usr/sbin/purge</code> when the app creates a trigger file whose name contains a secret generated for your install. Only the app knows the name, so other local users cannot trigger it.</li>
 </ul>
-<div class="note">The output file is readable by other local users, so process names on the machine are visible to them while the widget runs.</div>
+<div class="note">The output file is readable by other local users, so process names on the machine are visible to them while the app runs.</div>
 
 <h2>8. Limitations</h2>
 <p>macOS does not expose the following on this hardware, so they are not shown:</p>
@@ -171,8 +175,11 @@
   <tr><td>Power shows <code>n/a</code></td><td>The administrator dialog was cancelled. Quit and relaunch, then approve it.</td></tr>
   <tr><td>Power graphs are empty after launch</td><td>History fills at one sample per second. Wait a minute.</td></tr>
   <tr><td>Neural Engine reads 0 W</td><td>The engine is idle. Run something that uses it, such as Core ML work, to see it move.</td></tr>
-  <tr><td>Widget is off screen</td><td>Delete the saved position with <code>defaults delete com.raymondmunro.siliconinfo</code> and relaunch.</td></tr>
+  <tr><td>Floating panel is off screen</td><td>Delete the saved position with <code>defaults delete com.raymondmunro.siliconinfo</code> and relaunch.</td></tr>
   <tr><td>Widget says &quot;Open Silicon Info to update&quot;</td><td>The app is not running, so no fresh snapshot is being shared. Start the app.</td></tr>
+  <tr><td>Free Cached Memory says &quot;Needs admin access&quot;</td><td>The administrator dialog was cancelled or the privileged loop has stopped. Quit and relaunch, then approve the dialog.</td></tr>
+  <tr><td>Desktop widget looks grey</td><td>macOS draws widgets in grey when another app is in front. Set Widget style to Full-color in System Settings, under Desktop &amp; Dock.</td></tr>
+  <tr><td>Floating panel is gone</td><td>It was hidden. Use Show Panel in the menu bar menu, or open the app again from Finder or Spotlight.</td></tr>
   <tr><td>Widget is missing from the gallery</td><td>Run the app once. If it still does not appear, copy the app to the Applications folder and open it from there.</td></tr>
   <tr><td>Build fails</td><td>Install the command line tools with <code>xcode-select --install</code>.</td></tr>
 </table>
@@ -180,14 +187,15 @@
 <h2>10. Project layout</h2>
 <table>
   <tr><th>Path</th><th>Purpose</th></tr>
-  <tr><td><code>Sources/SiliconInfo/main.swift</code></td><td>Creates the borderless floating window and keeps it anchored and on screen.</td></tr>
+  <tr><td><code>Sources/SiliconInfo/main.swift</code></td><td>Creates the borderless floating window and the menu bar item, and keeps the window anchored and on screen.</td></tr>
   <tr><td><code>Sources/SiliconInfo/Sampler.swift</code></td><td>Samples core load and GPU statistics each second and holds the history.</td></tr>
   <tr><td><code>Sources/SiliconInfo/Memory.swift</code></td><td>Reads unified memory usage, pressure, swap and the top processes by memory.</td></tr>
+  <tr><td><code>Sources/SiliconInfo/MemoryPurger.swift</code></td><td>Hands free memory requests to the privileged loop and reports how much was freed.</td></tr>
   <tr><td><code>Sources/SiliconInfo/PowerFeed.swift</code></td><td>Starts the privileged loop and parses the <code>powermetrics</code> output.</td></tr>
   <tr><td><code>Sources/SiliconInfo/Views.swift</code></td><td>The overview cards and expand and collapse behavior.</td></tr>
   <tr><td><code>Sources/SiliconInfo/Detail.swift</code></td><td>The CPU, GPU, Neural Engine, Memory and Power detail views.</td></tr>
   <tr><td><code>Sources/SiliconInfo/WidgetBridge.swift</code></td><td>Builds the snapshot shared with the widget and asks WidgetKit to redraw.</td></tr>
-  <tr><td><code>Sources/SiliconInfoWidget/</code></td><td>The WidgetKit extension: timeline provider and widget configuration.</td></tr>
+  <tr><td><code>Sources/SiliconInfoWidget/</code></td><td>The WidgetKit extension: timeline provider, widget configuration and the tap to free memory action.</td></tr>
   <tr><td><code>Sources/Shared/</code></td><td>Data model, shared drawing code and the small, medium and large layouts, used by both targets.</td></tr>
   <tr><td><code>project.yml</code></td><td>Xcode project definition, generated by XcodeGen.</td></tr>
   <tr><td><code>scripts/make_icon.swift</code></td><td>Draws the app icon.</td></tr>
