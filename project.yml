@@ -56,6 +56,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.raymondmunro.siliconinfo.widget
         PRODUCT_NAME: SiliconInfoWidget
         SKIP_INSTALL: YES
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) WIDGET_EXTENSION"
     # Widget extensions must be sandboxed. It only reads the snapshot shared by the app.
     entitlements:
       path: Sources/SiliconInfoWidget/SiliconInfoWidget.entitlements

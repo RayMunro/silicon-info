@@ -385,6 +385,15 @@ struct MemoryDetail: View {
                     }
                 }
             }
+            Block(title: "FREE MEMORY", trailing: sampler.purgeNote) {
+                Button { sampler.requestPurge() } label: {
+                    Text("Free cached memory").font(.system(size: 12, weight: .semibold))
+                        .frame(maxWidth: .infinity).padding(.vertical, 7)
+                        .background(Palette.mem.opacity(0.25), in: RoundedRectangle(cornerRadius: 9))
+                }.buttonStyle(.plain)
+                Text("Purges the disk cache (the Cached files slice above). App memory is not affected, and the cache refills as you work. Needs the administrator prompt to have been approved.")
+                    .font(.system(size: 9)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
             Block(title: "PRESSURE AND SWAP") {
                 HStack {
                     Stat(label: "PRESSURE", value: m.pressureName, color: pressureColor)

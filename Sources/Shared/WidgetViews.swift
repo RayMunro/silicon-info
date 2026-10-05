@@ -40,6 +40,22 @@ enum ComponentChoice: String, CaseIterable, Codable {
     }
 }
 
+/// In the real widget the memory area is a button that frees cached memory. Elsewhere it is plain content.
+@ViewBuilder
+private func tappable<C: View>(_ content: C) -> some View {
+#if WIDGET_EXTENSION
+    Button(intent: FreeMemoryIntent()) { content }.buttonStyle(.plain)
+#else
+    content
+#endif
+}
+
+private func memoryUsage(_ d: WidgetData) -> String {
+    d.purgeNote.isEmpty
+        ? "\(String(format: "%.1f", d.memUsed / 1_073_741_824)) / \(String(format: "%.0f", d.memTotal / 1_073_741_824)) GB"
+        : d.purgeNote
+}
+
 private func watts(_ w: Double, known: Bool) -> String { known ? String(format: "%.1f W", w) : "n/a" }
 
 private struct Header: View {
@@ -65,6 +81,12 @@ struct SmallWidgetView: View {
         VStack(spacing: 6) {
             Header(title: component.title, tint: component.tint, trailing: trailing)
             Spacer(minLength: 0)
+            if component == .memory { tappable(body_) } else { body_ }
+        }
+    }
+
+    private var body_: some View {
+        VStack(spacing: 6) {
             ring
             Text(footnote).font(.system(size: 9.5)).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.8)
         }
@@ -103,7 +125,7 @@ struct SmallWidgetView: View {
         case .cpu: "P \(pct(avg(d.pCores)))  ·  E \(pct(avg(d.eCores)))"
         case .gpu: "Render \(pct(d.gpuRenderer))  ·  Tiler \(pct(d.gpuTiler))"
         case .neuralEngine: d.aneW > 0.05 ? "Active" : "Idle"
-        case .memory: "of \(String(format: "%.0f", d.memTotal / 1_073_741_824)) GB  ·  \(d.pressureName)"
+        case .memory: d.purgeNote.isEmpty ? "of \(String(format: "%.0f", d.memTotal / 1_073_741_824)) GB  ·  Tap to free" : d.purgeNote
         case .power: "CPU \(String(format: "%.1f", d.cpuW))  GPU \(String(format: "%.1f", d.gpuW))  ANE \(String(format: "%.1f", d.aneW))"
         }
     }
@@ -136,13 +158,12 @@ struct MediumWidgetView: View {
                 }.frame(width: 84)
             }
             Spacer(minLength: 0)
-            HStack(spacing: 8) {
+            tappable(HStack(spacing: 8) {
                 Text("MEM").font(.system(size: 8.5, weight: .semibold)).foregroundStyle(Palette.mem)
                 StackedBar(parts: [(d.memApp / max(d.memTotal, 1), Palette.mem), (d.memWired / max(d.memTotal, 1), Palette.mem.opacity(0.6)),
                                    (d.memCompressed / max(d.memTotal, 1), Palette.mem.opacity(0.35))], height: 6)
-                Text("\(String(format: "%.1f", d.memUsed / 1_073_741_824)) / \(String(format: "%.0f", d.memTotal / 1_073_741_824)) GB")
-                    .font(.system(size: 9, design: .monospaced)).foregroundStyle(.secondary)
-            }
+                Text(memoryUsage(d)).font(.system(size: 9, design: .monospaced)).foregroundStyle(.secondary)
+            }.contentShape(Rectangle()))
             HStack(spacing: 8) {
                 Text("PWR").font(.system(size: 8.5, weight: .semibold))
                 let t = max(d.totalW, 0.001)
@@ -159,33 +180,33 @@ struct LargeWidgetView: View {
     let d: WidgetData
 
     var body: some View {
-        VStack(spacing: 9) {
+        VStack(spacing: 7) {
             panel {
                 Header(title: "CPU", tint: Palette.cpuP, trailing: watts(d.cpuW, known: d.powerKnown), size: 11)
                 Text("PERFORMANCE · \(d.pCores.count)   \(pct(avg(d.pCores)))").font(.system(size: 8.5, weight: .semibold)).foregroundStyle(Palette.cpuP)
-                CoreBars(loads: d.pCores, color: Palette.cpuP, height: 24)
+                CoreBars(loads: d.pCores, color: Palette.cpuP, height: 19)
                 Text("EFFICIENCY · \(d.eCores.count)   \(pct(avg(d.eCores)))").font(.system(size: 8.5, weight: .semibold)).foregroundStyle(Palette.cpuE)
-                CoreBars(loads: d.eCores, color: Palette.cpuE, height: 24)
-                Sparkline(values: d.cpuHist, color: Palette.cpuP).frame(height: 18)
+                CoreBars(loads: d.eCores, color: Palette.cpuE, height: 19)
+                Sparkline(values: d.cpuHist, color: Palette.cpuP).frame(height: 13)
             }
-            HStack(spacing: 9) {
+            HStack(spacing: 7) {
                 panel {
                     Header(title: "GPU", tint: Palette.gpu, trailing: watts(d.gpuW, known: d.powerKnown), size: 11)
-                    Ring(value: d.gpuUtil, color: Palette.gpu, label: pct(d.gpuUtil), sub: "DEVICE", line: 7, labelSize: 16)
-                        .frame(width: 70, height: 70).frame(maxWidth: .infinity)
+                    Ring(value: d.gpuUtil, color: Palette.gpu, label: pct(d.gpuUtil), sub: "DEVICE", line: 6, labelSize: 14)
+                        .frame(width: 58, height: 58).frame(maxWidth: .infinity)
                 }
                 panel {
                     Header(title: "NEURAL ENGINE", tint: Palette.ane, trailing: watts(d.aneW, known: d.powerKnown), size: 11)
                     Ring(value: min(d.aneW / WidgetData.aneMaxWatts, 1), color: Palette.ane, label: String(format: "%.1f", d.aneW),
-                         sub: "WATTS", line: 7, labelSize: 16).frame(width: 70, height: 70).frame(maxWidth: .infinity)
+                         sub: "WATTS", line: 6, labelSize: 14).frame(width: 58, height: 58).frame(maxWidth: .infinity)
                 }
             }
-            panel {
-                Header(title: "MEMORY", tint: Palette.mem,
-                       trailing: "\(String(format: "%.1f", d.memUsed / 1_073_741_824)) / \(String(format: "%.0f", d.memTotal / 1_073_741_824)) GB", size: 11)
+            tappable(panel {
+                Header(title: "MEMORY", tint: Palette.mem, trailing: memoryUsage(d), size: 11)
                 StackedBar(parts: [(d.memApp / max(d.memTotal, 1), Palette.mem), (d.memWired / max(d.memTotal, 1), Palette.mem.opacity(0.6)),
                                    (d.memCompressed / max(d.memTotal, 1), Palette.mem.opacity(0.35))], height: 7)
-            }
+                Text("Tap to free cached memory").font(.system(size: 8)).foregroundStyle(.secondary)
+            }.contentShape(Rectangle()))
             panel {
                 let t = max(d.totalW, 0.001)
                 Header(title: "POWER", tint: .white, trailing: watts(d.totalW, known: d.powerKnown), size: 11)
@@ -195,8 +216,8 @@ struct LargeWidgetView: View {
     }
 
     private func panel<C: View>(@ViewBuilder _ content: () -> C) -> some View {
-        VStack(alignment: .leading, spacing: 5) { content() }
-            .padding(9)
+        VStack(alignment: .leading, spacing: 4) { content() }
+            .padding(8)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: 11).fill(.white.opacity(0.06)))
     }

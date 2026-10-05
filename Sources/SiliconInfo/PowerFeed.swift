@@ -49,6 +49,8 @@ final class PowerFeed {
         // Exits once no Silicon Info process has been seen for about six seconds, so a quick relaunch reuses it.
         let loop = "rm -f \(path) \(path).tmp; miss=0; while [ $miss -lt 6 ]; do "
             + "if pgrep -x SiliconInfo > /dev/null; then miss=0; else miss=$((miss+1)); fi; "
+            // "Free memory": when the app creates the secret trigger file, purge the disk cache, then remove the file.
+            + "if [ -e \(MemoryPurger.triggerPath) ]; then /usr/sbin/purge; rm -f \(MemoryPurger.triggerPath); fi; "
             + "/usr/bin/powermetrics --samplers cpu_power,gpu_power,ane_power,tasks --show-process-gpu -i 1000 -n 1 > \(path).tmp 2>/dev/null "
             + "&& mv \(path).tmp \(path) || sleep 2; done"
         let shell = "sh -c '\(loop)' > /dev/null 2>&1 &"

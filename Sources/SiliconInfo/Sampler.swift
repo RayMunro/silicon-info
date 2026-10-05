@@ -126,6 +126,12 @@ final class Sampler: ObservableObject {
     @Published var topMem: [(String, Double)] = []
     private var memReader = MemoryReader()
     private var memTicks = 0
+    /// State of the "free memory" action; see MemoryPurger.swift.
+    @Published var purgeNote = ""
+    var purgeNoteDate = Date.distantPast
+    var purgeStarted: Date?
+    var purgeBeforeCached = 0.0
+    private(set) var feedLive = false
     /// False until a nonzero reading arrives; some macOS versions report zeros for CPU channels.
     @Published var cpuPowerSeen = false
     @Published var gpuPowerSeen = false
@@ -162,7 +168,9 @@ final class Sampler: ObservableObject {
                 else if name.hasPrefix("ANE") { s.aneWatts += w }
             }
         }
+        feedLive = false
         if let r = feed.read() {   // exact figures from powermetrics override the IOReport ones
+            feedLive = true
             s.cpuWatts = r.cpu; s.gpuWatts = r.gpu; s.aneWatts = r.ane
             cpuPowerSeen = true; gpuPowerSeen = true
             pm = r
@@ -184,6 +192,7 @@ final class Sampler: ObservableObject {
             }
         }
         memTicks += 1
+        handlePurge()
         publishToWidget(tick: memTicks)
         let cpu = (s.eCores + s.pCores).reduce(0, +) / Double(max(s.eCores.count + s.pCores.count, 1))
         push(&cpuHistory, cpu); push(&gpuHistory, s.gpuUtil); push(&aneHistory, min(s.aneWatts / aneMaxWatts, 1))

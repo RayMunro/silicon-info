@@ -30,6 +30,7 @@ extension Sampler {
         d.memUsed = mem.used; d.memTotal = max(mem.total, 1)
         d.memApp = mem.app; d.memWired = mem.wired; d.memCompressed = mem.compressed
         d.pressure = mem.pressure
+        d.purgeNote = Date().timeIntervalSince(purgeNoteDate) < 60 ? purgeNote : ""
         return d
     }
 

@@ -29,6 +29,7 @@ struct WidgetData: Codable {
     var cpuHist: [Double] = [], gpuHist: [Double] = [], aneHist: [Double] = []   // 0...1, newest last
     var memUsed = 0.0, memTotal = 1.0, memApp = 0.0, memWired = 0.0, memCompressed = 0.0   // bytes
     var pressure = 1                    // 1 normal, 2 warning, 4 critical
+    var purgeNote = ""                  // result of the last "free memory" tap, shown for about a minute
 
     static let aneMaxWatts = 8.0
 
@@ -49,9 +50,23 @@ struct WidgetData: Codable {
 enum SharedStore {
     static let groupID = "875N49PYZ9.com.raymondmunro.siliconinfo"
 
-    static var fileURL: URL? {
-        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupID)?
-            .appendingPathComponent("snapshot.json")
+    private static var container: URL? {
+        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupID)
+    }
+    static var fileURL: URL? { container?.appendingPathComponent("snapshot.json") }
+    private static var requestURL: URL? { container?.appendingPathComponent("purge-request") }
+
+    /// Called by the widget: asks the app to free cached memory. The sandboxed widget cannot do it itself.
+    static func requestPurge() {
+        guard let url = requestURL else { return }
+        try? Data().write(to: url)
+    }
+
+    /// Called by the app: true once per request.
+    static func consumePurgeRequest() -> Bool {
+        guard let url = requestURL, FileManager.default.fileExists(atPath: url.path) else { return false }
+        try? FileManager.default.removeItem(at: url)
+        return true
     }
 
     static func write(_ data: WidgetData) {

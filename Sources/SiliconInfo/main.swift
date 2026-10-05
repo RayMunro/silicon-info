@@ -102,6 +102,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         info("Neural Engine  \(w(s.aneWatts))")
         info("Memory  \(gb(sampler.mem.used)) of \(gb(sampler.mem.total))")
         menu.addItem(.separator())
+        let free = NSMenuItem(title: "Free Cached Memory", action: #selector(freeMemory), keyEquivalent: "")
+        free.target = self
+        menu.addItem(free)
 
         let toggle = NSMenuItem(title: window.isVisible ? "Hide Panel" : "Show Panel", action: #selector(togglePanel), keyEquivalent: "")
         toggle.target = self
@@ -109,6 +112,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit Silicon Info", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
     }
+
+    @objc private func freeMemory() { sampler.requestPurge() }
 
     @objc private func togglePanel() { setPanelVisible(!window.isVisible) }
 

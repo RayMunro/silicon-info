@@ -16,9 +16,15 @@ Run the app once, then right-click the desktop, choose **Edit Widgets** and sear
 
 | Size | Shows |
 | --- | --- |
-| Small | One component of your choice (CPU, GPU, Neural Engine, Memory or Power). Edit the widget to pick which. |
-| Medium | CPU cores, GPU and Neural Engine side by side, with memory and a power split |
-| Large | Everything: CPU cores with history, GPU, Neural Engine, memory and power |
+| Small | One component of your choice (CPU, GPU, Neural Engine, Memory or Power). Edit the widget to pick which. When it shows Memory, tapping it frees cached memory. |
+| Medium | CPU cores, GPU and Neural Engine side by side, with memory and a power split. Tap the memory bar to free cached memory. |
+| Large | Everything: CPU cores with history, GPU, Neural Engine, memory and power. Tap the memory panel to free cached memory. |
+
+### Free memory
+
+Tapping the memory area of the widget frees cached memory. The same action is available as a button in the Memory detail view and as **Free Cached Memory** in the menu bar menu. The widget then shows how much was freed for about a minute.
+
+This runs `purge`, which empties the disk cache (the Cached files slice). It does not free memory used by apps, only quitting apps does that, and the cache refills as you work, so things may feel briefly slower. It needs the administrator prompt to have been approved at launch, otherwise the widget says so.
 
 The widget is sandboxed and cannot read hardware counters itself, so the Silicon Info app keeps sampling and shares a snapshot with it through an App Group. Keep the app running for fresh data. macOS limits how often widgets redraw, so expect updates every several seconds, not every second like the floating panel. If the app is not running the widget says so.
 
